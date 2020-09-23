@@ -2,11 +2,11 @@
 #-----------------------------------------------------------------------
 #
 # This file defines a function that creates a model configuration file
-# in the specified run directory.
+# for the specified cycle.
 #
 #-----------------------------------------------------------------------
 #
-function create_model_configure_file() {
+function create_model_config_file() {
 #
 #-----------------------------------------------------------------------
 #
@@ -80,17 +80,16 @@ nthreads \
 #
 #-----------------------------------------------------------------------
 #
-# Create a model configuration file in the specified run directory.
+# Create a model configuration file within each cycle directory.
 #
 #-----------------------------------------------------------------------
 #
   print_info_msg "$VERBOSE" "
-Creating a model configuration file (\"${MODEL_CONFIG_FN}\") in the specified
-run directory (run_dir):
-  run_dir = \"${run_dir}\""
+Creating a model configuration file (\"${MODEL_CONFIG_FN}\") within each
+cycle directory..."
 #
-# Copy template model configure files from the templates directory to the 
-# run directory.
+# Copy template of cycle-dependent model configure files from the templates
+# directory to the current cycle directory.
 #
   model_config_fp="${run_dir}/${MODEL_CONFIG_FN}"
   cp_vrfy "${MODEL_CONFIG_TMPL_FP}" "${model_config_fp}"

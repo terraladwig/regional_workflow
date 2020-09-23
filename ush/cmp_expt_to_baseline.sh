@@ -165,7 +165,7 @@ The experiment and baseline directories are:
 #          "orog" \
 #          "sfc_climo" \
 subdirs=( "." \
-          "fix_lam" \
+          "fix_sar" \
           "$CDATE/${EXTRN_MDL_NAME_ICS}/ICS" \
           "$CDATE/${EXTRN_MDL_NAME_LBCS}/LBCS" \
           "$CDATE/INPUT" \
