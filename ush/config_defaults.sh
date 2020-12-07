@@ -352,12 +352,20 @@ WFLOW_LAUNCH_LOG_FN="log.launch_FV3LAM_wflow"
 # FCST_LEN_HRS:
 # The length of each forecast, in integer hours.
 #
+# DA_CYCLE_INTERV:
+# Data assimilation cycle interval, in integer hours for now.
+#
+# RESTART_INTERVAL:
+# Set up frequenency or list of the forecast hours that FV3 should
+# generate the restart files. The numbers need to match with DA_CYCLE_INTERV.
 #-----------------------------------------------------------------------
 #
 DATE_FIRST_CYCL="YYYYMMDD"
 DATE_LAST_CYCL="YYYYMMDD"
 CYCL_HRS=( "HH1" "HH2" )
 FCST_LEN_HRS="24"
+DA_CYCLE_INTERV="3"
+RESTART_INTERVAL="3,6"
 #
 #-----------------------------------------------------------------------
 #
@@ -1133,6 +1141,11 @@ MAKE_ICS_TN="make_ics"
 MAKE_LBCS_TN="make_lbcs"
 RUN_FCST_TN="run_fcst"
 RUN_POST_TN="run_post"
+
+ANAL_GSI_INPUT_TN="anal_gsi_input"
+ANAL_GSI_RESTA_TN="anal_gsi_resta"
+PROCESS_RADAR_REF_TN="process_radarref"
+RADAR_REFL2TTEN_TN="radar_refl2tten"
 #
 # Number of nodes.
 #
@@ -1145,6 +1158,7 @@ NNODES_MAKE_ICS="4"
 NNODES_MAKE_LBCS="4"
 NNODES_RUN_FCST=""  # This is calculated in the workflow generation scripts, so no need to set here.
 NNODES_RUN_POST="2"
+NNODES_RUN_ANAL="16"
 #
 # Number of MPI processes per node.
 #
@@ -1157,6 +1171,7 @@ PPN_MAKE_ICS="12"
 PPN_MAKE_LBCS="12"
 PPN_RUN_FCST="24"  # This may have to be changed depending on the number of threads used.
 PPN_RUN_POST="24"
+PPN_RUN_ANAL="24"
 #
 # Walltimes.
 #
@@ -1169,6 +1184,7 @@ WTIME_MAKE_ICS="00:30:00"
 WTIME_MAKE_LBCS="00:30:00"
 WTIME_RUN_FCST="04:30:00"
 WTIME_RUN_POST="00:15:00"
+WTIME_RUN_ANAL="00:30:00"
 #
 #-----------------------------------------------------------------------
 #
@@ -1197,6 +1213,15 @@ WTIME_RUN_POST="00:15:00"
 #
 DO_ENSEMBLE="FALSE"
 NUM_ENS_MEMBERS="1"
+#
+#-----------------------------------------------------------------------
+#
+# Set parameters associated with running data assimilation.  Definitions:
+#
+# DO_DACYCLE:
+# Flag that determines whether to run a data assimilation cycle.
+#
+DO_DACYCLE="FALSE"
 #
 #-----------------------------------------------------------------------
 #

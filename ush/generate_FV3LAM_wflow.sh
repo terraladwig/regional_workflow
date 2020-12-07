@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 #-----------------------------------------------------------------------
 #
@@ -194,6 +193,7 @@ settings="\
   'nnodes_make_ics': ${NNODES_MAKE_ICS}
   'nnodes_make_lbcs': ${NNODES_MAKE_LBCS}
   'nnodes_run_fcst': ${NNODES_RUN_FCST}
+  'nnodes_run_anal': ${NNODES_RUN_ANAL}
   'nnodes_run_post': ${NNODES_RUN_POST}
 #
 # Number of cores used for a task
@@ -213,6 +213,7 @@ settings="\
   'ppn_make_ics': ${PPN_MAKE_ICS}
   'ppn_make_lbcs': ${PPN_MAKE_LBCS}
   'ppn_run_fcst': ${PPN_RUN_FCST}
+  'ppn_run_anal': ${PPN_RUN_ANAL}
   'ppn_run_post': ${PPN_RUN_POST}
 #
 # Maximum wallclock time for each task.
@@ -225,6 +226,7 @@ settings="\
   'wtime_make_ics': ${WTIME_MAKE_ICS}
   'wtime_make_lbcs': ${WTIME_MAKE_LBCS}
   'wtime_run_fcst': ${WTIME_RUN_FCST}
+  'wtime_run_anal': ${WTIME_RUN_ANAL}
   'wtime_run_post': ${WTIME_RUN_POST}
 #
 # Flags that specify whether to run the preprocessing tasks.
@@ -277,6 +279,10 @@ settings="\
   'ensmem_indx_name': ${ensmem_indx_name}
   'uscore_ensmem_name': ${uscore_ensmem_name}
   'slash_ensmem_subdir': ${slash_ensmem_subdir}
+#
+# data assimilation related parameters.
+#
+  'do_dacycle': ${DO_DACYCLE}
 " # End of "settings" variable.
 
 print_info_msg $VERBOSE "
@@ -793,6 +799,7 @@ failed.  Parameters passed to this script are:
   Namelist settings specified on command line:
     settings =
 $settings"
+
 #
 # If not running the MAKE_GRID_TN task (which implies the workflow will
 # use pregenerated grid files), set the namelist variables specifying
@@ -818,6 +825,33 @@ for the various ensemble members failed."
   fi
 
 fi
+
+# need to generate a namelist for da cycle
+settings="\
+'fv_core_nml': {
+    'external_ic': false,
+    'make_nh'    : false,
+    'na_init'    : 0,
+    'nggps_ic'   : false,
+    'no_dycore'  : true,
+    'warm_start' : true,
+  }"
+
+$USHDIR/set_namelist.py -q \
+                        -n ${FV3_NML_FP} \
+                        -u "$settings" \
+                        -o ${FV3_NML_RESTART_FP} || \
+  print_err_msg_exit "\
+Call to python script set_namelist.py to generate an restart FV3 namelist file
+failed.  Parameters passed to this script are:
+  Full path to base namelist file:
+    FV3_NML_FP = \"${FV3_NML_FP}\"
+  Full path to output namelist file for DA:
+    FV3_NML_RESTART_FP = \"${FV3_NML_RESTART_FP}\"
+  Namelist settings specified on command line:
+    settings =
+$settings"
+
 #
 #-----------------------------------------------------------------------
 #
