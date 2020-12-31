@@ -42,7 +42,7 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 
-This is the ex-script for the task that generates radar reflectivity tten
+This is the ex-script for the task that conduct no-var cloud analysis
 with FV3 for the specified cycle.
 ========================================================================"
 #
@@ -162,7 +162,6 @@ workdir=${WORKDIR}
 cd_vrfy ${workdir}
 
 fixdir=$FIXgsi
-
 print_info_msg "$VERBOSE" "fixdir is $fixdir"
 pwd
 
@@ -193,33 +192,71 @@ fi
 # link/copy observation files to working directory
 #
 #-----------------------------------------------------------------------
-PROCESS_RADARREF_PATH=${CYCLE_DIR}/PROCESS_RADARREF
-PROCESS_LIGHTNING_PATH=${CYCLE_DIR}/process_lightning
 
-obs_file=${PROCESS_RADARREF_PATH}/RefInGSI3D.dat
+PROCESS_BUFR_PATH=${CYCLE_DIR}/process_bufr
+
+obs_file=${PROCESS_BUFR_PATH}/LightningInFV3LAM.dat
 if [ -r "${obs_file}" ]; then
-   cp_vrfy "${obs_file}" "RefInGSI3D.dat_01"
+   cp_vrfy "${obs_file}" "LightningInFV3LAM.dat"
 else
    print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
 fi
 
-obs_file=${PROCESS_RADARREF_PATH}/LightningInFV3LAM.dat
+obs_file=${PROCESS_BUFR_PATH}/NASALaRC_cloud4fv3.bin
 if [ -r "${obs_file}" ]; then
-   cp_vrfy "${obs_file}" "LightningInGSI.dat_01"
+   cp_vrfy "${obs_file}" "NASALaRC_cloud4fv3.bin"
 else
    print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
 fi
 
+obs_file=${PROCESS_BUFR_PATH}/fv3_metarcloud.bin
+if [ -r "${obs_file}" ]; then
+   cp_vrfy "${obs_file}" "fv3_metarcloud.bin"
+else
+   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
+fi
 
 #-----------------------------------------------------------------------
 #
-# Create links to BUFR table, which needed for generate the BUFR file
+# Build namelist 
 #
 #-----------------------------------------------------------------------
-BUFR_TABLE=${fixdir}/prepobs_prep_RAP.bufrtable
 
-# Fixed fields
-cp_vrfy $BUFR_TABLE prepobs_prep.bufrtable
+cat << EOF > gsiparm.anl
+
+ &SETUP
+  iyear=${YYYY},
+  imonth=${MM},
+  iday=${DD},
+  ihour=${HH},
+  iminute=00,
+ /
+ &RAPIDREFRESH_CLDSURF
+   dfi_radar_latent_heat_time_period=20.0,
+   metar_impact_radius=10.0,
+   metar_impact_radius_lowCloud=4.0,
+   l_pw_hgt_adjust=.true.,
+   l_limit_pw_innov=.true.,
+   max_innov_pct=0.1,
+   l_cleanSnow_WarmTs=.true.,
+   r_cleanSnow_WarmTs_threshold=5.0,
+   l_conserve_thetaV=.true.,
+   i_conserve_thetaV_iternum=3,
+   l_cld_bld=.true.,
+   l_numconc=.true.,
+   cld_bld_hgt=1200.0,
+   build_cloud_frac_p=0.50,
+   clear_cloud_frac_p=0.10,
+   iclean_hydro_withRef_allcol=1,
+   i_gsdcldanal_type=6,
+   i_gsdsfc_uselist=1,
+   i_lightpcp=1,
+   i_gsdqc=2,
+   l_saturate_bkCloud=.true.,
+ /
+EOF
+
+
 
 #
 #-----------------------------------------------------------------------
@@ -228,30 +265,29 @@ cp_vrfy $BUFR_TABLE prepobs_prep.bufrtable
 #
 #-----------------------------------------------------------------------
 #
-
-EXEC="${EXECDIR}/ref2tten.exe"
+EXEC="${EXECDIR}/fv3sar_novarcldana.exe"
 
 if [ -f $EXEC ]; then
   print_info_msg "$VERBOSE" "
-Copying the radar refl tten  executable to the run directory..."
-  cp_vrfy ${EXEC} ${workdir}/ref2ttenfv3sar.exe
+Copying the noVar Cloud Analysis executable to the run directory..."
+  cp_vrfy ${EXEC} ${workdir}/fv3sar_novarcldana.exe
 else
   print_err_msg_exit "\
-The radar refl tten executable specified in EXEC does not exist:
+The executable specified in EXEC does not exist:
   EXEC = \"$EXEC\"
-Build radar refl tten and rerun."
+Build executable and rerun."
 fi
 #
 #
 #
 #-----------------------------------------------------------------------
 #
-# Run the radar to tten application.  
+# Run the novar cloud analysis application.  
 #
 #-----------------------------------------------------------------------
 #
-$APRUN ./ref2ttenfv3sar.exe > stdout 2>&1 || print_err_msg_exit "\
-Call to executable to run radar refl tten returned with nonzero exit code."
+$APRUN ./fv3sar_novarcldana.exe > stdout 2>&1 || print_err_msg_exit "\
+Call to executable to run No Var Cloud Analysis returned with nonzero exit code."
 
 #
 #-----------------------------------------------------------------------

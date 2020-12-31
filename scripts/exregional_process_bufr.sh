@@ -42,7 +42,7 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 
-This is the ex-script for the task that runs radar reflectivity preprocess
+This is the ex-script for the task that runs bufr (cloud, metar, lightning) preprocess
 with FV3 for the specified cycle.
 ========================================================================"
 #
@@ -150,6 +150,10 @@ MM=${YYYYMMDDHH:4:2}
 DD=${YYYYMMDDHH:6:2}
 HH=${YYYYMMDDHH:8:2}
 YYYYMMDD=${YYYYMMDDHH:0:8}
+
+YYJJJHH=`date +"%y%j%H" -d "${START_DATE}"`
+PREYYJJJHH=`date +"%y%j%H" -d "${START_DATE} 1 hours ago"`
+
 #
 #-----------------------------------------------------------------------
 #
@@ -158,7 +162,7 @@ YYYYMMDD=${YYYYMMDDHH:0:8}
 #-----------------------------------------------------------------------
 #
 print_info_msg "$VERBOSE" "
-Getting into working directory for radar reflectivity process ..."
+Getting into working directory for BUFR obseration process ..."
 
 cd ${WORKDIR}
 
@@ -173,96 +177,133 @@ print_info_msg "$VERBOSE" "fixdir is $fixdir"
 #
 #-----------------------------------------------------------------------
 
-FV3SARPATH=${CYCLE_DIR}
 cp_vrfy ${fixdir}/fv3_grid_spec          fv3sar_grid_spec.nc
+cp_vrfy ${fixdir}/geo_em.d01.nc          geo_em.d01.nc
 
-
-#
-#-----------------------------------------------------------------------
-#
-# link/copy observation files to working directory 
-#
-#-----------------------------------------------------------------------
-
-NSSL=${OBSPATH_NSSLMOSIAC}
-
-mrms="MRMS_MergedReflectivityQC"
-
-echo "${MM0} ${MM1} ${MM2} ${MM3}"
-
-# Link to the MRMS operational data
-for min in ${MM0} ${MM1} ${MM2} ${MM3}
-do
-  echo "Looking for data valid:"${YYYY}"-"${MM}"-"${DD}" "${HH}":"${min}
-  s=0
-  while [[ $s -le 59 ]]; do
-    if [ $s -lt 10 ]; then
-      ss=0${s}
-    else
-      ss=$s
-    fi
-    nsslfile=${NSSL}/${YYYY}${MM}${DD}-${HH}${min}${ss}.${mrms}_00.50_${YYYY}${MM}${DD}-${HH}${min}${ss}.grib2
-    if [ -s $nsslfile ]; then
-      echo 'Found '${nsslfile}
-      numgrib2=`ls ${NSSL}/${YYYY}${MM}${DD}-${HH}${min}*.${mrms}_*_${YYYY}${MM}${DD}-${HH}${min}*.grib2 | wc -l`
-      echo 'Number of GRIB-2 files: '${numgrib2}
-      if [ ${numgrib2} -ge 10 ] && [ ! -e filelist_mrms ]; then
-        ln -sf ${NSSL}/${YYYY}${MM}${DD}-${HH}${min}*.${mrms}_*_${YYYY}${MM}${DD}-${HH}${min}*.grib2 . 
-        ls ${YYYY}${MM}${DD}-${HH}${min}*.${mrms}_*_${YYYY}${MM}${DD}-${HH}${min}*.grib2 > filelist_mrms
-        echo 'Creating links for ${YYYY}${MM}${DD}-${HH}${min}'
-      fi
-    fi
-    ((s+=1))
-  done
-done
-
-# remove filelist_mrms if zero bytes
-if [ ! -s filelist_mrms ]; then
-  rm -f filelist_mrms
-fi
-
-if [ -s filelist_mrms ]; then
-   numgrib2=`more filelist_mrms | wc -l`
-   print_info_msg "$VERBOSE" "Using radar data from: `head -1 filelist_mrms | cut -c10-15`"
-   print_info_msg "$VERBOSE" "NSSL grib2 file levels = $numgrib2"
-else
-   echo "ERROR: Not enough radar reflectivity files available."
-   exit 1
-fi
 
 #-----------------------------------------------------------------------
 #
-# copy bufr table from fix directory
+#   copy bufr table
 #
 #-----------------------------------------------------------------------
 BUFR_TABLE=${fixdir}/prepobs_prep_RAP.bufrtable
-
 cp_vrfy $BUFR_TABLE prepobs_prep.bufrtable
+
+#
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+#
+# Link to the observation lightning bufr files
+#
+#-----------------------------------------------------------------------
+
+run_lightning=false
+obs_file=${OBSPATH}/${YYYYMMDDHH}.rap.t${HH}z.lghtng.tm00.bufr_d
+print_info_msg "$VERBOSE" "obsfile is $obs_file"
+if [ -r "${obs_file}" ]; then
+   cp_vrfy "${obs_file}" "lghtngbufr"
+   run_lightning=true
+else
+   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
+fi
 
 #-----------------------------------------------------------------------
 #
-# Build namelist and run executable 
+# Build namelist and run executable for lightning
 #
-#   tversion      : data source version
-#                   = 1 NSSL 1 tile grib2 for single level
-#                   = 4 NSSL 4 tiles binary
-#                   = 8 NSSL 8 tiles netcdf
+#   analysis_time : process obs used for this analysis date (YYYYMMDDHH)
+#   minute        : process obs used for this analysis minute (integer)
+#   trange_start  : obs time window start (minutes before analysis time)
+#   trange_end    : obs time window end (minutes after analysis time)
 #   bkversion     : grid type (background will be used in the analysis)
 #                   0 for ARW  (default)
 #                   1 for FV3LAM
-#   analysis_time : process obs used for this analysis date (YYYYMMDDHH)
-#   dataPath      : path of the radar reflectivity mosaic files.
+#-----------------------------------------------------------------------
+
+cat << EOF > lightning_bufr.namelist
+ &setup
+  analysis_time = ${YYYYMMDDHH},
+  minute=00,
+  trange_start=-10,
+  trange_end=10,
+  bkversion=1,
+ /
+
+EOF
+
+#
+#-----------------------------------------------------------------------
+#
+# link/copy executable file to working directory 
+#
+#-----------------------------------------------------------------------
+#
+EXEC="${EXECDIR}/process_Lightning_bufr.exe"
+
+if [ -f $EXEC ]; then
+  print_info_msg "$VERBOSE" "
+Copying the lightning process  executable to the run directory..."
+  cp_vrfy ${EXEC} ${WORKDIR}/process_Lightning_bufr.exe
+else
+  print_err_msg_exit "\
+The executable specified in EXEC does not exist:
+  EXEC = \"$EXEC\"
+Build lightning process and rerun."
+fi
+#
+#
+#-----------------------------------------------------------------------
+#
+# Run the process for lightning bufr file 
+#
+#-----------------------------------------------------------------------
+#
+if [ $run_lightning ]; then
+   $APRUN ./process_Lightning_bufr.exe > stdout_lightning_bufr 2>&1 || print_err_msg "\
+   Call to executable to run lightning process returned with nonzero exit code."
+fi
+
+#
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+#
+# Link to the observation NASA LaRC cloud bufr file
 #
 #-----------------------------------------------------------------------
 
-cat << EOF > mosaic.namelist
- &setup
-  tversion=1,
-  bkversion=1,
-  analysis_time = ${YYYYMMDDHH},
-  dataPath = './',
- /
+obs_file=${OBSPATH}/${YYYYMMDDHH}.rap.t${HH}z.lgycld.tm00.bufr_d
+print_info_msg "$VERBOSE" "obsfile is $obs_file"
+run_cloud=false
+if [ -r "${obs_file}" ]; then
+   cp_vrfy "${obs_file}" "NASA_LaRC_cloud.bufr"
+   run_cloud=true
+else
+   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
+fi
 
+#-----------------------------------------------------------------------
+#
+# Build namelist and run executable for NASA LaRC cloud
+#
+#   analysis_time : process obs used for this analysis date (YYYYMMDDHH)
+#   bufrfile      : result BUFR file name
+#   npts_rad      : number of grid point to build search box (integer)
+#   ioption       : interpolation options
+#                   = 1 is nearest neighrhood
+#                   = 2 is median of cloudy fov
+#   bkversion     : grid type (background will be used in the analysis)
+#                   = 0 for ARW  (default)
+#                   = 1 for FV3LAM
+#-----------------------------------------------------------------------
+
+cat << EOF > namelist_nasalarc
+ &setup
+  analysis_time = ${YYYYMMDDHH},
+  bufrfile='NASALaRCCloudInGSI_bufr.bufr',
+  npts_rad=1,
+  ioption = 2,
+  bkversion=1,
+ /
 EOF
 
 #
@@ -272,28 +313,100 @@ EOF
 #
 #-----------------------------------------------------------------------
 #
-EXEC="${EXECDIR}/process_NSSL_mosaic.exe"
+EXEC="${EXECDIR}/process_larccld.exe"
 
 if [ -f $EXEC ]; then
   print_info_msg "$VERBOSE" "
-Copying the radar process  executable to the run directory..."
-  cp_vrfy ${EXEC} ${WORKDIR}/process_NSSL_mosaic.exe
+Copying the NASA LaRC cloud process  executable to the run directory..."
+  cp_vrfy ${EXEC} ${WORKDIR}/process_larccld.exe
 else
   print_err_msg_exit "\
-The executable specified in GSI_EXEC does not exist:
+The executable specified in EXEC does not exist:
   EXEC = \"$EXEC\"
-Build radar process and rerun."
+Build lightning process and rerun."
 fi
 #
 #
 #-----------------------------------------------------------------------
 #
-# Run the process.
+# Run the process for NASA LaRc cloud  bufr file 
 #
 #-----------------------------------------------------------------------
 #
-$APRUN ./process_NSSL_mosaic.exe > stdout 2>&1 || print_err_msg "\
-Call to executable to run radar refl process returned with nonzero exit code."
+if [ $run_cloud ]; then
+  $APRUN ./process_larccld.exe > stdout_nasalarc 2>&1 || print_err_msg "\
+  Call to executable to run NASA LaRC Cloud process returned with nonzero exit code."
+fi
+
+#
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
+#
+# Link to the observation prepbufr bufr file for METAR cloud
+#
+#-----------------------------------------------------------------------
+
+obs_file=${OBSPATH}/${YYYYMMDDHH}.rap.t${HH}z.prepbufr.tm00 
+print_info_msg "$VERBOSE" "obsfile is $obs_file"
+run_metar=false
+if [ -r "${obs_file}" ]; then
+   cp_vrfy "${obs_file}" "prepbufr"
+   run_metar=true
+else
+   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
+fi
+
+#-----------------------------------------------------------------------
+#
+# Build namelist for METAR cloud
+#
+#   analysis_time   : process obs used for this analysis date (YYYYMMDDHH)
+#   analysis_minute : process obs used for this analysis minute (integer)
+#   prepbufrfile    : input prepbufr file name
+#   twindin         : observation time window (real: hours before and after analysis time)
+#
+#-----------------------------------------------------------------------
+
+cat << EOF > namelist_metarcld
+ &setup
+  analysis_time = ${YYYYMMDDHH},
+  prepbufrfile='prepbufr',
+  twindin=0.5,
+ /
+EOF
+
+#
+#-----------------------------------------------------------------------
+#
+# Copy the executable to the run directory.
+#
+#-----------------------------------------------------------------------
+#
+EXEC="${EXECDIR}/process_metarcld.exe"
+
+if [ -f $EXEC ]; then
+  print_info_msg "$VERBOSE" "
+Copying the METAR cloud process  executable to the run directory..."
+  cp_vrfy ${EXEC} ${WORKDIR}/process_metarcld.exe
+else
+  print_err_msg_exit "\
+The executable specified in EXEC does not exist:
+  EXEC = \"$EXEC\"
+Build lightning process and rerun."
+fi
+#
+#
+#-----------------------------------------------------------------------
+#
+# Run the process for METAR cloud bufr file 
+#
+#-----------------------------------------------------------------------
+#
+if [ $run_metar ]; then
+  $APRUN ./process_metarcld.exe > stdout_metarcld 2>&1 || print_err_msg "\
+  Call to executable to run METAR cloud process returned with nonzero exit code."
+fi
+
 #
 #-----------------------------------------------------------------------
 #
@@ -303,7 +416,7 @@ Call to executable to run radar refl process returned with nonzero exit code."
 #
 print_info_msg "
 ========================================================================
-RADAR REFL PROCESS completed successfully!!!
+BUFR PROCESS completed successfully!!!
 
 Exiting script:  \"${scrfunc_fn}\"
 In directory:    \"${scrfunc_dir}\"

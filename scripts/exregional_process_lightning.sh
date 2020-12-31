@@ -42,7 +42,7 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 
-This is the ex-script for the task that generates radar reflectivity tten
+This is the ex-script for the task that runs lightning preprocess
 with FV3 for the specified cycle.
 ========================================================================"
 #
@@ -112,12 +112,14 @@ case $MACHINE in
   ulimit -s unlimited
   ulimit -a
   APRUN="srun"
+  LD_LIBRARY_PATH="${UFS_WTHR_MDL_DIR}/FV3/ccpp/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   ;;
 #
 "JET")
   ulimit -s unlimited
   ulimit -a
   APRUN="srun"
+  LD_LIBRARY_PATH="${UFS_WTHR_MDL_DIR}/FV3/ccpp/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   ;;
 #
 "ODIN")
@@ -140,86 +142,103 @@ esac
 #
 set -x
 START_DATE=`echo "${CDATE}" | sed 's/\([[:digit:]]\{2\}\)$/ \1/'`
-YYYYMMDDHH=`date +%Y%m%d%H -d "${START_DATE}"`
-JJJ=`date +%j -d "${START_DATE}"`
+  YYYYMMDDHH=`date +%Y%m%d%H -d "${START_DATE}"`
+  JJJ=`date +%j -d "${START_DATE}"`
 
 YYYY=${YYYYMMDDHH:0:4}
 MM=${YYYYMMDDHH:4:2}
 DD=${YYYYMMDDHH:6:2}
 HH=${YYYYMMDDHH:8:2}
 YYYYMMDD=${YYYYMMDDHH:0:8}
+
+YYJJJHH=`date +"%y%j%H" -d "${START_DATE}"`
+PREYYJJJHH=`date +"%y%j%H" -d "${START_DATE} 1 hours ago"`
+
 #
 #-----------------------------------------------------------------------
 #
-# Get into working directory and define fix directory
+# Get into working directory
 #
 #-----------------------------------------------------------------------
 #
 print_info_msg "$VERBOSE" "
-Getting into working directory for radar tten process ..."
+Getting into working directory for lightning process ..."
 
-workdir=${WORKDIR}
-cd_vrfy ${workdir}
+cd ${WORKDIR}
 
-fixdir=$FIXgsi
+fixdir=$FIXgsi/
 
 print_info_msg "$VERBOSE" "fixdir is $fixdir"
-pwd
 
 #
 #-----------------------------------------------------------------------
 #
-# link or copy background and grid configuration files
+# link or copy background and grid files
 #
 #-----------------------------------------------------------------------
 
-cp_vrfy ${fixdir}/fv3_akbk                               fv3_akbk
-cp_vrfy ${fixdir}/fv3_grid_spec                          fv3_grid_spec
-
-bkpath=${CYCLE_DIR}/INPUT
-if [ -w ${bkpath}/gfs_data.tile7.halo0.nc ]; then  # Use background from INPUT
-  ln_vrfy -s ${bkpath}/sfc_data.tile7.halo0.nc      fv3_sfcdata
-  ln_vrfy -s ${bkpath}/gfs_data.tile7.halo0.nc      fv3_dynvars
-  ln_vrfy -s ${bkpath}/gfs_data.tile7.halo0.nc      fv3_tracer
-else                                               # Use background from RESTART
-  ln_vrfy -s ${bkpath}/fv_core.res.tile1.nc         fv3_dynvars
-  ln_vrfy -s ${bkpath}/fv_tracer.res.tile1.nc       fv3_tracer
-  ln_vrfy -s ${bkpath}/sfc_data.nc                  fv3_sfcdata
-fi
-
-#
-#-----------------------------------------------------------------------
-#
-# link/copy observation files to working directory
-#
-#-----------------------------------------------------------------------
-PROCESS_RADARREF_PATH=${CYCLE_DIR}/PROCESS_RADARREF
-PROCESS_LIGHTNING_PATH=${CYCLE_DIR}/process_lightning
-
-obs_file=${PROCESS_RADARREF_PATH}/RefInGSI3D.dat
-if [ -r "${obs_file}" ]; then
-   cp_vrfy "${obs_file}" "RefInGSI3D.dat_01"
-else
-   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
-fi
-
-obs_file=${PROCESS_RADARREF_PATH}/LightningInFV3LAM.dat
-if [ -r "${obs_file}" ]; then
-   cp_vrfy "${obs_file}" "LightningInGSI.dat_01"
-else
-   print_info_msg "$VERBOSE" "Warning: ${obs_file} does not exist!"
-fi
+cp_vrfy ${fixdir}/fv3_grid_spec          fv3sar_grid_spec.nc
+cp_vrfy ${fixdir}/geo_em.d01.nc          geo_em.d01.nc
 
 
 #-----------------------------------------------------------------------
 #
-# Create links to BUFR table, which needed for generate the BUFR file
+# Link to the NLDN data
+#
+#-----------------------------------------------------------------------
+filenum=0
+LIGHTNING_FILE=${LIGHTNING_ROOT}/vaisala/netcdf
+for n in 00 05 ; do
+  filename=${LIGHTNING_FILE}/${YYJJJHH}${n}0005r
+  if [ -r ${filename} ]; then
+  ((filenum += 1 ))
+    ln -sf ${filename} ./NLDN_lightning_${filenum}
+  else
+   echo " ${filename} does not exist"
+  fi
+done
+for n in 55 50 45 40 35 ; do
+  filename=${LIGHTNING_FILE}/${PREYYJJJHH}${n}0005r
+  if [ -r ${filename} ]; then
+  ((filenum += 1 ))
+    ln -sf ${filename} ./NLDN_lightning_${filenum}
+  else
+   echo " ${filename} does not exist"
+  fi
+done
+
+echo "found GLD360 files: ${filenum}"
+
+#-----------------------------------------------------------------------
+#
+# copy bufr table from fix directory
 #
 #-----------------------------------------------------------------------
 BUFR_TABLE=${fixdir}/prepobs_prep_RAP.bufrtable
 
-# Fixed fields
 cp_vrfy $BUFR_TABLE prepobs_prep.bufrtable
+
+#-----------------------------------------------------------------------
+#
+# Build namelist and run executable
+#
+#   analysis_time : process obs used for this analysis date (YYYYMMDDHH)
+#   NLDN_filenum  : number of NLDN lighting observation files 
+#   IfAlaska      : logic to decide if to process Alaska lightning obs
+#   bkversion     : grid type (background will be used in the analysis)
+#                   = 0 for ARW  (default)
+#                   = 1 for FV3LAM
+#-----------------------------------------------------------------------
+
+cat << EOF > lightning.namelist
+ &setup
+  analysis_time = ${YYYYMMDDHH},
+  NLDN_filenum  = ${filenum},
+  IfAlaska    = false,
+  bkversion=1,
+ /
+
+EOF
 
 #
 #-----------------------------------------------------------------------
@@ -228,31 +247,28 @@ cp_vrfy $BUFR_TABLE prepobs_prep.bufrtable
 #
 #-----------------------------------------------------------------------
 #
-
-EXEC="${EXECDIR}/ref2tten.exe"
+EXEC="${EXECDIR}/process_Lightning_nc.exe"
 
 if [ -f $EXEC ]; then
   print_info_msg "$VERBOSE" "
-Copying the radar refl tten  executable to the run directory..."
-  cp_vrfy ${EXEC} ${workdir}/ref2ttenfv3sar.exe
+Copying the lightning process  executable to the run directory..."
+  cp_vrfy ${EXEC} ${WORKDIR}/process_Lightning_nc.exe
 else
   print_err_msg_exit "\
-The radar refl tten executable specified in EXEC does not exist:
+The executable specified in EXEC does not exist:
   EXEC = \"$EXEC\"
-Build radar refl tten and rerun."
+Build lightning process and rerun."
 fi
 #
 #
+#-----------------------------------------------------------------------
+#
+# Run the process
 #
 #-----------------------------------------------------------------------
 #
-# Run the radar to tten application.  
-#
-#-----------------------------------------------------------------------
-#
-$APRUN ./ref2ttenfv3sar.exe > stdout 2>&1 || print_err_msg_exit "\
-Call to executable to run radar refl tten returned with nonzero exit code."
-
+$APRUN ./process_Lightning_nc.exe < lightning.namelist > stdout 2>&1 || print_err_msg "\
+Call to executable to run lightning (nc) process returned with nonzero exit code."
 #
 #-----------------------------------------------------------------------
 #
@@ -262,7 +278,7 @@ Call to executable to run radar refl tten returned with nonzero exit code."
 #
 print_info_msg "
 ========================================================================
-RADAR REFL TTEN PROCESS completed successfully!!!
+LIGHTNING PROCESS completed successfully!!!
 
 Exiting script:  \"${scrfunc_fn}\"
 In directory:    \"${scrfunc_dir}\"

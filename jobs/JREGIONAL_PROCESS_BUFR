@@ -1,15 +1,13 @@
 #!/bin/bash
 
-
 #
 #-----------------------------------------------------------------------
 #
-# This J-JOB script runs the radar reflectivity preprocess 
+# This J-JOB script runs the preprocess of BUFR files
 #      for the FV3-LAM model
 #
 #-----------------------------------------------------------------------
 #
-
 #
 #-----------------------------------------------------------------------
 #
@@ -52,8 +50,8 @@ print_info_msg "
 Entering script:  \"${scrfunc_fn}\"
 In directory:     \"${scrfunc_dir}\"
 
-This is the J-job script for the task that runs a radar reflectivity 
-preprocess with FV3 for the specified cycle.
+This is the J-job script for the task that runs a BUFR preprocess for 
+the specified cycle.
 ========================================================================"
 #
 #-----------------------------------------------------------------------
@@ -62,7 +60,7 @@ preprocess with FV3 for the specified cycle.
 #
 #-----------------------------------------------------------------------
 #
-WORKDIR=${CYCLE_DIR}/PROCESS_RADARREF
+WORKDIR=${CYCLE_DIR}/process_bufr
 rm -fr ${WORKDIR}
 mkdir_vrfy -p ${WORKDIR}
 #
@@ -73,7 +71,7 @@ mkdir_vrfy -p ${WORKDIR}
 #
 #-----------------------------------------------------------------------
 #
-$SCRIPTSDIR/exregional_process_radarref.sh \
+$SCRIPTSDIR/exregional_process_bufr.sh \
   CYCLE_DIR="${CYCLE_DIR}" WORKDIR="${WORKDIR}" || \
 print_err_msg_exit "\
 Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
