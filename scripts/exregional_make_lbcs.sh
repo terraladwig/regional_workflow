@@ -340,11 +340,11 @@ and FV3GFS file type (FV3GFS_FILE_FMT_LBCS):
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_2017_gfdlmp_regional" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_CPT_v0" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_RRFS_v1beta" ] || \
-       [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v15p2" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v16beta" ]; then
       numsoil_out="4"
     elif [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_v0" ] || \
+         [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
          [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_SAR" ]; then
       numsoil_out="9"
     else

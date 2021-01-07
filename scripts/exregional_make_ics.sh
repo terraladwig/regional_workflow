@@ -358,6 +358,7 @@ FV3GFS file type (FV3GFS_FILE_FMT_ICS):
   internal_GSD=False
   cdate_min_HRRRX="2019111500"
   if [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_v0" -o \
+       "${CCPP_PHYS_SUITE}" = "FV3_HRRR" -o \
        "${CCPP_PHYS_SUITE}" = "FV3_GSD_SAR" ] && \
      [ ${CDATE} -gt ${cdate_min_HRRRX} ]; then
     print_info_msg "
@@ -371,12 +372,12 @@ HRRRX grib2 files created after about \"${cdate_min_HRRRX}\"..."
     if [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_2017_gfdlmp" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_2017_gfdlmp_regional" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_RRFS_v1beta" ] || \
-       [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_CPT_v0" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v15p2" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v16beta" ]; then
       numsoil_out="4"
     elif [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_v0" ] || \
+         [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
          [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_SAR" ]; then
       numsoil_out="9"
     else
@@ -420,11 +421,11 @@ of external model (EXTRN_MDL_NAME_ICS) and physics suite (CCPP_PHYS_SUITE):
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_2017_gfdlmp_regional" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_CPT_v0" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_RRFS_v1beta" ] || \
-       [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v15p2" ] || \
        [ "${CCPP_PHYS_SUITE}" = "FV3_GFS_v16beta" ]; then
       numsoil_out="4"
     elif [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_v0" ] || \
+         [ "${CCPP_PHYS_SUITE}" = "FV3_HRRR" ] || \
          [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_SAR" ]; then
       numsoil_out="9"
     else
