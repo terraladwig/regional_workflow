@@ -12,7 +12,6 @@ loadscript(lib_location + "strpad.ncl")
 loadscript(lib_location + "repeat_str.ncl")
 loadscript(lib_location + "calc_rotated_sphr_coords_from_sphr.ncl")
 loadscript(lib_location + "calc_sphr_coords_from_rotated_sphr.ncl")
-loadscript(lib_location + "convert_from_to_sphr_coords_to_from_rotated_sphr.ncl")
 
 undef("calc_wrtcmp_grid_params_rotated_latlon")
 
@@ -62,79 +61,23 @@ begin
 ;
   lon_ctr = lon_ctr_native
   lat_ctr = lat_ctr_native
+  lat1 = lat_ctr
+  lat2 = lat_ctr
 ;
 ; **********************************************************************
 ;
-; The following is a manual intervention to ensure that the first elements
-; of lon_tile_corners_face_midpts_native and lat_tile_corners_face_midpts_native
-; represent the southwest corner of the grid.  If that is already the case,
-; i_start should be set to 0.
-;
-; Note that this will not be the case for a GFDLgrid type of grid because
-; for that case, tile 6 on which the regional grid (tile 7) is based starts
-; its numbering such that the northeast corner of the tile is (i,j) = (0,0),
-; and i increases going west while j increases going south.  For that case,
-; i_start must be set to 4 (since the northwest corner is the first element
-; and thus has an index of 0, so we have to march four points forward -
-; to the midpoint of the north face, then to the northwest corner, then 
-; to the midpoint of the west face, and finally to the southwest corner).
-;
-; The following may also be needed for grids (of either GFDLgrid or ESGgrid
-; type) that straddle the international date line (which is the case if
-; they include one or the other pole).  The RAP domain is such an example.
-; In such cases, the order of the coordinates must be manually verified 
-; and possbily fixed using the code below.
+; Calculate the Lambert coordinates of the southwest corner of the na-
+; tive grid from its spherical coordinates.
 ;
 ; **********************************************************************
 ;
-if (False)
-;if (True)
-
-print("")
-print("(lon_tile_corners_face_midpts_native, lat_tile_corners_face_midpts_native) = " + \
-      lon_tile_corners_face_midpts_native + ", " + \
-      lat_tile_corners_face_midpts_native)
-pause
-
-  i_start = 4
-
-  nn = dimsizes(lon_tile_corners_face_midpts_native)
-  i_end = i_start + nn - 1
-
-  i_vec = ispan(i_start, i_end, 1)
-  i_vec = where(i_vec .gt. nn-1, i_vec - nn, i_vec)
-
-  lon_tile_corners_face_midpts_native := lon_tile_corners_face_midpts_native(i_vec)
-  lat_tile_corners_face_midpts_native := lat_tile_corners_face_midpts_native(i_vec)
-print("")
-print("(lon_tile_corners_face_midpts_native, lat_tile_corners_face_midpts_native) = " + \
-      lon_tile_corners_face_midpts_native + ", " + \
-      lat_tile_corners_face_midpts_native)
-pause
-
-end if
-
-
-;
-; **********************************************************************
-;
-; Calculate the rotated spherical coordinates of the southwest corner of 
-; the native grid from its spherical coordinates.
-;
-; **********************************************************************
-;
-  rotated_sphr_coords \
-  := convert_from_to_sphr_coords_to_from_rotated_sphr( \               
-     lon_ctr, lat_ctr, angle_units, 1, \                              
+  lambert_coords \
+  := calc_rotated_sphr_coords_from_sphr( \
+     lon_ctr, lat_ctr, lat1, lat2, angle_units, \
      lon_tile_corners_face_midpts_native, \
      lat_tile_corners_face_midpts_native)
-  x_tile_corners_face_midpts_native = rotated_sphr_coords@lon_out
-  y_tile_corners_face_midpts_native = rotated_sphr_coords@lat_out
-;print("")
-;print("(x_tile_corners_face_midpts_native, y_tile_corners_face_midpts_native) = " + \
-;      x_tile_corners_face_midpts_native + ", " + \
-;      y_tile_corners_face_midpts_native)
-;pause
+  x_tile_corners_face_midpts_native = lambert_coords@x
+  y_tile_corners_face_midpts_native = lambert_coords@y
 
   i = 0
   x_SW_native = x_tile_corners_face_midpts_native(i)
@@ -174,13 +117,10 @@ end if
 ;
 ; **********************************************************************
 ;
-
-; Calculate grid size in degrees along the rotated spherical coordinates.
-  dx = (dx_native/rad_Earth)*degs_per_rad
-  dy = (dy_native/rad_Earth)*degs_per_rad
-
-  num_margin_cells = 1
-;  num_margin_cells = 5
+  dx = dx_native 
+  dy = dy_native 
+;  num_margin_cells = 1
+  num_margin_cells = 5
 ;  num_margin_cells = 100
 ;
 ; **********************************************************************
@@ -222,7 +162,9 @@ end if
   y_S = y_S_native_max + num_margin_cells*dy
   y_N = y_N_native_min - num_margin_cells*dy
 
-  y_S = -min(abs((/y_S, y_N/)))
+  y_S_tmp = y_S
+  y_N_tmp = y_N
+  y_S = -min(abs((/y_S_tmp, y_N_tmp/)))
   y_N = -y_S
 
   Ly = y_N - y_S
@@ -235,29 +177,23 @@ end if
 ;
 ; **********************************************************************
 ;
-; Calculate the spherical coordinates of the southwest corner of the 
-; native grid from its Lambert coordinates.
+; Calculate the spherical coordinates of the southwest corner of the na-
+; tive grid from its Lambert coordinates.
 ;
 ; **********************************************************************
 ;
-  lon_ctr_ll_cell = x_W + 0.5*dx
-  lat_ctr_ll_cell = y_S + 0.5*dy
+  x_W = x_W + 0.5*dx
+  x_E = x_E - 0.5*dx
 
-  lon_ctr_ur_cell = x_E - 0.5*dx
-  lat_ctr_ur_cell = y_N - 0.5*dy
+  y_S = y_S + 0.5*dy
+  y_N = y_N - 0.5*dy
 
-;  dlon = dx*degs_per_rad
-;  dlat = dy*degs_per_rad
-
-  dlon = dx
-  dlat = dy
-
-;  sphr_coords \
-;  := calc_sphr_coords_from_rotated_sphr( \
-;     lon_ctr, lat_ctr, lat1, lat2, rad_Earth, angle_units, \
-;     x_W, y_S)
-;  lon_SW = sphr_coords@lon
-;  lat_SW = sphr_coords@lat
+  sphr_coords \
+  := calc_sphr_coords_from_rotated_sphr( \
+     lon_ctr, lat_ctr, lat1, lat2, rad_Earth, angle_units, \
+     x_W, y_S)
+  lon_SW = sphr_coords@lon
+  lat_SW = sphr_coords@lat
 ;
 ; **********************************************************************
 ;
@@ -329,22 +265,22 @@ end if
       param_value := lat_ctr
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "lon1")) then
-      param_value := lon_ctr_ll_cell
+      param_value := lon_SW
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "lat1")) then
-      param_value := lat_ctr_ll_cell
+      param_value := lat_SW
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "lon2")) then
-      param_value := lon_ctr_ur_cell
+      param_value := lon_SW
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "lat2")) then
-      param_value := lat_ctr_ur_cell
+      param_value := lat_SW
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "dlon")) then
-      param_value := dlon
+      param_value := dx
       fmt_str = "%16.8f"
     else if (strcmp_exact(param_name, "dlat")) then
-      param_value := dlat
+      param_value := dy
       fmt_str = "%16.8f"
     else
 

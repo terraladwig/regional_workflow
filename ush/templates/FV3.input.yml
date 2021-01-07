@@ -11,8 +11,6 @@
 
 
 FV3_GSD_v0:
-  gfs_physics_nml:
-    effr_in: True
 
 FV3_GSD_SAR: 
   fv_core_nml:
@@ -27,7 +25,6 @@ FV3_GSD_SAR:
   gfs_physics_nml: &gsd_sar_phys
     cnvcld: false
     cnvgwd: false
-    effr_in: True
     imfdeepcnv: 0
     imfshalcnv: 0
     iopt_alb: 2
@@ -43,7 +40,6 @@ FV3_GSD_SAR:
     iopt_stc: 1
     iopt_tbot: 2
     shal_cnv: false
-    do_deep: False
 
 FV3_HRRR:
   fv_core_nml:
@@ -68,29 +64,15 @@ FV3_HRRR:
     imfshalcnv: -1
     lsoil: 9
 
-FV3_RRFS_v1alpha:
-  gfs_physics_nml:
-    <<: *gsd_sar_phys
-    do_deep: False
-    do_mynnsfclay: False
-    effr_in: True
-    imfdeepcnv: -1
-    imfshalcnv: -1
-    lsm: 2
-    lsoil_lsm: 4
-  atmos_model_nml:
-    fdiag: 3
-
 FV3_RRFS_v1beta:
   gfs_physics_nml:
     <<: *gsd_sar_phys
-    do_deep: False
-    do_mynnsfclay: True
-    effr_in: True
-    imfdeepcnv: -1
-    imfshalcnv: -1
     lsm: 2
     lsoil_lsm: 4
+    imfshalcnv: -1
+    IMFDEEPCNV: -1
+    DO_MYNNSFCLAY: true
+    GWD_OPT: 3
   atmos_model_nml:
     fdiag: 3
 
@@ -123,8 +105,7 @@ FV3_GFS_2017_gfdlmp:
     do_deep: False
     do_mynnedmf: !!python/none
     do_mynnsfclay: !!python/none
-    lndp_type: !!python/none
-    n_var_lndp: !!python/none
+    do_sfcperts: !!python/none
     effr_in: True
     fhcyc: 0.0
     fhlwr: 3600.0
@@ -204,8 +185,7 @@ FV3_GFS_2017_gfdlmp_regional:
   gfs_physics_nml:
     <<: *gfs_2017_gfdlmp_phys
     cplflx: False
-    lndp_type: 0
-    n_var_lndp: 0
+    do_sfcperts: False
     iopt_alb: 2
     iopt_btr: 1
     iopt_crs: 1
@@ -359,8 +339,7 @@ FV3_GFS_v16beta:
     cdmbgwd: [4.0, 0.15, 1.0, 1.0]
     do_myjpbl: !!python/none
     do_myjsfc: !!python/none
-    lndp_type: !!python/none
-    n_var_lndp: !!python/none
+    do_sfcperts: !!python/none
     do_tofd: True
     do_ysu: !!python/none
     effr_in: True
@@ -368,7 +347,8 @@ FV3_GFS_v16beta:
     iaer: 5111
     icliq_sw: 2
     iopt_dveg: 1
-    iovr: 3
+    iovr_lw: 3
+    iovr_sw: 3
     isatmedmf: 1
     lgfdlmprad: True
     lheatstrg: True
@@ -427,8 +407,7 @@ FV3_CPT_v0:
     do_sb_physics: True
     do_mynnedmf: !!python/none
     do_mynnsfclay: !!python/none
-    lndp_type: !!python/none
-    n_var_lndp: !!python/none
+    do_sfcperts: !!python/none
     do_shoc: False
     effr_in: True
     fhcyc: 0.0
@@ -480,5 +459,6 @@ FV3_CPT_v0:
     xkzm_h: 0.5
     xkzm_m: 0.5
     xkzm_s: 1.0
+  nam_sfcperts: !!python/none
   surf_map_nml: !!python/none
 

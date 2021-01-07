@@ -259,7 +259,7 @@ def main(cla):
     tvars = {}
     for var in template_vars:
 
-        if cfg.get(var, "NULL") == "NULL":
+        if cfg.get(var) is None:
             raise KeyError(f'{var} does not exist in user-supplied settings!')
 
         if not cla.quiet:

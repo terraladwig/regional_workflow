@@ -1,4 +1,3 @@
-#%Module
 module load modules
 
 module load xt-lsfhpc
