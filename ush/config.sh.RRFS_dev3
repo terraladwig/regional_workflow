@@ -1,7 +1,7 @@
 MACHINE="jet"
 ACCOUNT="nrtrr"
 EXPT_BASEDIR="/home/rtrr/RRFS"
-EXPT_SUBDIR="RRFS_dev4"
+EXPT_SUBDIR="RRFS_dev3"
 
 QUEUE_DEFAULT="batch"
 QUEUE_HPSS="service"
@@ -36,11 +36,11 @@ envir="para"
 
 NET="RRFS_CONUS"
 
-ARCHIVEDIR="/5year/BMC/wrfruc/rrfs_dev4"
+ARCHIVEDIR="/5year/BMC/wrfruc/rrfs_dev3"
 NCARG_ROOT="/apps/ncl/6.5.0-CentOS6.10_64bit_nodap_gnu447"
 NCL_HOME="/home/rtrr/RRFS/graphics"
 NCL_REGION="conus"
-MODEL="RRFS (dev4)"
+MODEL="RRFS (dev3)"
 
 #
 # In NCO mode, the following don't need to be explicitly set to "FALSE" 
@@ -51,7 +51,7 @@ MODEL="RRFS (dev4)"
 #RUN_TASK_MAKE_OROG="FALSE"
 #RUN_TASK_MAKE_SFC_CLIMO="FALSE"
 
-RUN="RRFS_dev4"
+RUN="RRFS_dev3"
 COMINgfs=""
 
 STMP="/lfs4/BMC/nrtrr/NCO_dirs/stmp"  # Path to directory STMP that mostly contains input files.
