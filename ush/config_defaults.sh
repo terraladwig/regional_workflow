@@ -196,6 +196,13 @@ EXPT_SUBDIR=""
 # 
 #   $PTMP/com/$NET/$envir/$RUN.$yyyymmdd/$hh
 #
+# Setup default observation locations for data assimilation:
+#
+#    OBSPATH:   observation BUFR file path
+#    OBSPATH_NSSLMOSIAC: NSSL radar reflectivity 
+#    LIGHTNING_ROOT: lightning observations
+#    ENKF_FCSTL: globa ensemble forecast
+
 #-----------------------------------------------------------------------
 #
 COMINgfs="/base/path/of/directory/containing/gfs/input/files"
@@ -210,6 +217,12 @@ NCARG_ROOT="/apps/ncl/6.5.0-CentOS6.10_64bit_nodap_gnu447"
 NCL_HOME="/home/rtrr/RRFS/graphics"
 NCL_REGION="conus"
 MODEL="NO MODEL CHOSEN"
+
+OBSPATH="/public/data/grids/rap/obs"
+OBSPATH_NSSLMOSIAC="/public/data/radar/mrms"
+LIGHTNING_ROOT="/public/data/lightning"
+ENKF_FCST="/lfs4/BMC/public/data/grids/enkf/atm_v15"
+
 #
 #-----------------------------------------------------------------------
 #
@@ -352,6 +365,10 @@ WFLOW_LAUNCH_LOG_FN="log.launch_FV3LAM_wflow"
 # FCST_LEN_HRS:
 # The length of each forecast, in integer hours.
 #
+# FCST_LEN_HRS_CYCLES:
+# The length of forecast for each cycle, in integer hours.
+# When it empty, all forecast will be FCST_LEN_HRS
+#
 # DA_CYCLE_INTERV:
 # Data assimilation cycle interval, in integer hours for now.
 #
@@ -364,6 +381,7 @@ DATE_FIRST_CYCL="YYYYMMDD"
 DATE_LAST_CYCL="YYYYMMDD"
 CYCL_HRS=( "HH1" "HH2" )
 FCST_LEN_HRS="24"
+FCST_LEN_HRS_CYCLES=( )
 DA_CYCLE_INTERV="3"
 RESTART_INTERVAL="3,6"
 #
@@ -1249,6 +1267,15 @@ NUM_ENS_MEMBERS="1"
 # Flag that determines whether to run a data assimilation cycle.
 #
 DO_DACYCLE="FALSE"
+#
+#-----------------------------------------------------------------------
+#
+# Set parameters associated with running retrospective experiments.  Definitions:
+#
+# DO_RETRO:
+# Flag turn on the retrospective experiments.
+#
+DO_RETRO="FALSE"
 #
 #-----------------------------------------------------------------------
 #

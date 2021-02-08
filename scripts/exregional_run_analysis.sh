@@ -180,9 +180,6 @@ START_DATE=`echo "${CDATE}" | sed 's/\([[:digit:]]\{2\}\)$/ \1/'`
 YYYYMMDDHH=`date +%Y%m%d%H -d "${START_DATE}"`
 JJJ=`date +%j -d "${START_DATE}"`
 
-YYYYMMDDHHmInterv=`date +%Y%m%d%H -d "${START_DATE} ${DA_CYCLE_INTERV} hours ago"`
-JJJm6=`date +%j -d "${START_DATE} ${DA_CYCLE_INTERV} hours ago"`
-
 YYYY=${YYYYMMDDHH:0:4}
 MM=${YYYYMMDDHH:4:2}
 DD=${YYYYMMDDHH:6:2}
@@ -203,12 +200,13 @@ fixgriddir=$FIXgsi/${PREDEF_GRID_NAME}
 if [ ${BKTYPE} -eq 1 ]; then  # cold start, use background from INPUT
   bkpath=${CYCLE_DIR}/INPUT
 else
+  YYYYMMDDHHmInterv=`date +%Y%m%d%H -d "${START_DATE} ${DA_CYCLE_INTERV} hours ago"`
   bkpath=${CYCLE_ROOT}/${YYYYMMDDHHmInterv}/RESTART  # cycling, use background from RESTART
 fi
 
 print_info_msg "$VERBOSE" "fixdir is $fixdir"
 print_info_msg "$VERBOSE" "fixgriddir is $fixgriddir"
-print_info_msg "$VERBOSE" "bkpath is $bkpath"
+print_info_msg "$VERBOSE" "default bkpath is $bkpath"
 
 
 #-----------------------------------------------------------------------
@@ -308,13 +306,12 @@ fi
 #-----------------------------------------------------------------------
 
 FV3SARPATH=${CYCLE_DIR}
-cp_vrfy ${fixgriddir}/fv3_akbk                               fv3_akbk
-cp_vrfy ${fixgriddir}/fv3_grid_spec                          fv3_grid_spec
+cp_vrfy ${fixgriddir}/fv3_akbk                     fv3_akbk
+cp_vrfy ${fixgriddir}/fv3_grid_spec                fv3_grid_spec
 
 if [ ${BKTYPE} -eq 1 ]; then  # cold start uses background from INPUT
-  cp_vrfy ${bkpath}/gfs_data.tile7.halo0.nc                gfs_data.tile7.halo0.nc_b
-  ${NCKS} -A -v  phis ${fixgriddir}/phis.nc                    gfs_data.tile7.halo0.nc_b
-  ${NCKS} -A -v radar_tten ${fixgriddir}/radar_tten_input.nc   gfs_data.tile7.halo0.nc_b
+  cp_vrfy ${bkpath}/gfs_data.tile7.halo0.nc        gfs_data.tile7.halo0.nc_b
+  ${NCKS} -A -v  phis ${fixgriddir}/phis.nc        gfs_data.tile7.halo0.nc_b
 
   cp_vrfy ${bkpath}/sfc_data.tile7.halo0.nc        fv3_sfcdata
   cp_vrfy gfs_data.tile7.halo0.nc_b                fv3_dynvars
@@ -328,16 +325,35 @@ else                          # cycle uses background from restart
     restart_prefix=${YYYYMMDD}.${HH}0000
   else
     print_err_msg_exit "\
-Restart hour should not larger than forecast hour:
+    Restart hour should not larger than forecast hour:
     Restart Hour = \"${DA_CYCLE_INTERV}\"
     Forecast Hour = \"${FCST_LEN_HRS}\""    
     exit 1
   fi
 
-  cp_vrfy  ${bkpath}/${restart_prefix}.fv_core.res.tile1.nc             fv3_dynvars
-  cp_vrfy  ${bkpath}/${restart_prefix}.fv_tracer.res.tile1.nc           fv3_tracer
-  cp_vrfy  ${bkpath}/${restart_prefix}.sfc_data.nc                      fv3_sfcdata
-  ${NCKS} -A -v radar_tten ${fixgriddir}/radar_tten_restart.nc              fv3_tracer
+#   let us figure out which backgound is available
+  n=${DA_CYCLE_INTERV}
+  while [[ $n -le 6 ]] ; do
+    checkfile=${bkpath}/${restart_prefix}.fv_core.res.tile1.nc
+    if [ -r "${checkfile}" ]; then
+      print_info_msg "$VERBOSE" "Found ${checkfile}; Use it as background for analysis "
+      break
+    else
+      n=$((n + ${DA_CYCLE_INTERV}))
+      YYYYMMDDHHmInterv=`date +%Y%m%d%H -d "${START_DATE} ${n} hours ago"`
+      bkpath=${CYCLE_ROOT}/${YYYYMMDDHHmInterv}/RESTART  # cycling, use background from RESTART
+      print_info_msg "$VERBOSE" "Trying this path: ${bkpath}"
+    fi
+  done
+#
+  checkfile=${bkpath}/${restart_prefix}.fv_core.res.tile1.nc
+  if [ -r "${checkfile}" ]; then
+    cp_vrfy  ${bkpath}/${restart_prefix}.fv_core.res.tile1.nc             fv3_dynvars
+    cp_vrfy  ${bkpath}/${restart_prefix}.fv_tracer.res.tile1.nc           fv3_tracer
+    cp_vrfy  ${bkpath}/${restart_prefix}.sfc_data.nc                      fv3_sfcdata
+  else
+    print_info_msg_exit "$VERBOSE" "Error: cannot find background: ${checkfile}"
+  fi
   fv3sar_bg_type=0
 fi
 
@@ -350,10 +366,6 @@ cat coupler.res.newD | sed "s/hh/${HH}/"     > coupler.res.newH
 mv coupler.res.newH coupler.res
 rm coupler.res.newY coupler.res.newM coupler.res.newD
 
-# This is how to add radar tten array in the first time:
-#cp_vrfy ${USHDIR}/addtten.py                        addtten.py 
-#/scratch1/BMC/wrfruc/Samuel.Trahan/soft/anaconda2-5.3.1/bin/python3.7 addtten.py fv3_tracer
-#python addtten.py fv3_tracer
 #
 #-----------------------------------------------------------------------
 #
@@ -407,7 +419,7 @@ done
 anavinfo=${fixdir}/anavinfo_fv3sar_hrrr
 BERROR=${fixdir}/rap_berror_stats_global_RAP_tune
 SATINFO=${fixdir}/global_satinfo.txt
-CONVINFO=${fixdir}/nam_regional_convinfo_RAP.txt
+CONVINFO=${fixgriddir}/nam_regional_convinfo_RAP.txt
 OZINFO=${fixdir}/global_ozinfo.txt
 PCPINFO=${fixdir}/global_pcpinfo.txt
 OBERROR=${fixdir}/nam_errtable.r3dv
@@ -422,6 +434,8 @@ cp      $OZINFO   ozinfo
 cp      $PCPINFO  pcpinfo
 cp_vrfy $OBERROR  errtable
 cp_vrfy $ATMS_BEAMWIDTH atms_beamwidth.txt
+
+cp_vrfy ${fixdir}/hybens_info_rrfs hybens_info
 
 # Get aircraft reject list and surface uselist
 cp_vrfy ${AIRCRAFT_REJECT}/current_bad_aircraft.txt current_bad_aircraft
@@ -504,7 +518,7 @@ grid_ratio=1
 cloudanalysistype=0
 
 # Build the GSI namelist on-the-fly
-. ${fixdir}/gsiparm.anl.sh
+. ${fixgriddir}/gsiparm.anl.sh
 cat << EOF > gsiparm.anl
 $gsi_namelist
 EOF
@@ -570,6 +584,69 @@ else                          # cycling, generate INPUT from previous cycle REST
   cp_vrfy ${ANALWORKDIR}/fv3_sfcdata                            ${CYCLE_DIR}/INPUT/sfc_data.nc
   cp_vrfy ${CYCLE_ROOT}/${YYYYMMDDHHmInterv}/INPUT/gfs_ctrl.nc  ${CYCLE_DIR}/INPUT/gfs_ctrl.nc
 fi
+
+
+#-----------------------------------------------------------------------
+# Loop over first and last outer loops to generate innovation
+# diagnostic files for indicated observation types (groups)
+#
+# NOTE:  Since we set miter=2 in GSI namelist SETUP, outer
+#        loop 03 will contain innovations with respect to 
+#        the analysis.  Creation of o-a innovation files
+#        is triggered by write_diag(3)=.true.  The setting
+#        write_diag(1)=.true. turns on creation of o-g
+#        innovation files.
+#-----------------------------------------------------------------------
+#
+
+netcdf_diag=${netcdf_diag:-".false."}
+binary_diag=${binary_diag:-".true."}
+
+loops="01 03"
+for loop in $loops; do
+
+case $loop in
+  01) string=ges;;
+  03) string=anl;;
+   *) string=$loop;;
+esac
+
+#  Collect diagnostic files for obs types (groups) below
+if [ $binary_diag = ".true." ]; then
+   listall="conv hirs2_n14 msu_n14 sndr_g08 sndr_g11 sndr_g11 sndr_g12 sndr_g13 sndr_g08_prep sndr_g11_prep sndr_g12_prep sndr_g13_prep sndrd1_g11 sndrd2_g11 sndrd3_g11 sndrd4_g11 sndrd1_g12 sndrd2_g12 sndrd3_g12 sndrd4_g12 sndrd1_g13 sndrd2_g13 sndrd3_g13 sndrd4_g13 hirs3_n15 hirs3_n16 hirs3_n17 amsua_n15 amsua_n16 amsua_n17 amsub_n15 amsub_n16 amsub_n17 hsb_aqua airs_aqua amsua_aqua imgr_g08 imgr_g11 imgr_g12 pcp_ssmi_dmsp pcp_tmi_trmm sbuv2_n16 sbuv2_n17 sbuv2_n18 omi_aura ssmi_f13 ssmi_f14 ssmi_f15 hirs4_n18 hirs4_metop-a amsua_n18 amsua_metop-a mhs_n18 mhs_metop-a amsre_low_aqua amsre_mid_aqua amsre_hig_aqua ssmis_las_f16 ssmis_uas_f16 ssmis_img_f16 ssmis_env_f16 iasi_metop-a"
+   for type in $listall; do
+      count=`ls pe*.${type}_${loop} | wc -l`
+      if [[ $count -gt 0 ]]; then
+         `cat pe*.${type}_${loop} > diag_${type}_${string}.${YYYYMMDDHH}`
+      fi
+   done
+fi
+
+if [ $netcdf_diag = ".true." ]; then
+   listallnc="conv_ps conv_q conv_t conv_uv"
+
+   CAT_EXEC="${EXECDIR}/ncdiag_cat.x"
+
+   if [ -f $CAT_EXEC ]; then
+      print_info_msg "$VERBOSE" "
+        Copying the ncdiag_cat executable to the run directory..."
+      cp_vrfy ${CAT_EXEC} ${ANALWORKDIR}/ncdiag_cat.x
+   else
+      print_err_msg_exit "\
+        The ncdiag_cat executable specified in CAT_EXEC does not exist:
+        CAT_EXEC = \"$CAT_EXEC\"
+        Build GSI and rerun."
+   fi
+
+   for type in $listallnc; do
+      count=`ls pe*.${type}_${loop}.nc4 | wc -l`
+      if [[ $count -gt 0 ]]; then
+         ./ncdiag_cat.x -o ncdiag_${type}_${string}.nc4.${YYYYMMDDHH} pe*.${type}_${loop}.nc4
+      fi
+   done
+fi
+
+done
 
 #
 #-----------------------------------------------------------------------
