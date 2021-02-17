@@ -27,7 +27,7 @@
 #
 #-----------------------------------------------------------------------
 #
-scrfunc_fp=$( readlink -f "${BASH_SOURCE[0]}" )
+scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 #
@@ -128,10 +128,15 @@ case "$MACHINE" in
     ;;
 #
   *)
-    print_err_msg_exit "\
+
+    if [[ -n ${LMOD_PATH:-""} && -f ${LMOD_PATH:-""} ]] ; then
+      . ${LMOD_PATH}
+    else
+      print_err_msg_exit "\
 The script to source to initialize lmod (module loads) has not yet been
 specified for the current machine (MACHINE):
   MACHINE = \"$MACHINE\""
+    fi
     ;;
 #
 esac
@@ -152,8 +157,8 @@ jjob_fp="$2"
 #
 #-----------------------------------------------------------------------
 #
-machine=${MACHINE,,}
-env_fn="build_${machine}_${COMPILER}.env"
+machine=$(echo_lowercase $MACHINE)
+env_fn=${BUILD_ENV_FN:-"build_${machine}_${COMPILER}.env"}
 env_fp="${SR_WX_APP_TOP_DIR}/env/${env_fn}"
 source "${env_fp}" || print_err_msg_exit "\
 Sourcing platform- and compiler-specific environment file (env_fp) for the 
@@ -224,11 +229,11 @@ use_default_modulefile=0
 
 #else
 
-#  modulefile_path=$( readlink -f "${modules_dir}/${modulefile_name}" )
+#  modulefile_path=$( $READLINK -f "${modules_dir}/${modulefile_name}" )
 
 #  if [ ! -f "${modulefile_path}" ]; then
 
-#    default_modulefile_path=$( readlink -f "${default_modules_dir}/${default_modulefile_name}" )
+#    default_modulefile_path=$( $READLINK -f "${default_modules_dir}/${default_modulefile_name}" )
 #    if [ -f "${default_modulefile_path}" ]; then
 #
 # If the task-specific modulefile does not exist but a default one does, 

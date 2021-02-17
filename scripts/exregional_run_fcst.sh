@@ -9,6 +9,7 @@
 #
 . ${GLOBAL_VAR_DEFNS_FP}
 . $USHDIR/source_util_funcs.sh
+. $USHDIR/create_diag_table_file.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -35,7 +36,7 @@
 #
 #-----------------------------------------------------------------------
 #
-scrfunc_fp=$( readlink -f "${BASH_SOURCE[0]}" )
+scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 #
@@ -142,6 +143,14 @@ case $MACHINE in
   "STAMPEDE")
     module list
     APRUN="ibrun -np ${PE_MEMBER01}"
+    ;;
+
+  "MACOS")
+    APRUN=$RUN_CMD_FCST
+    ;;
+
+  "LINUX")
+    APRUN=$RUN_CMD_FCST
     ;;
 
   *)
@@ -360,9 +369,9 @@ for (( i=0; i<${num_symlinks}; i++ )); do
 
   mapping="${CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING[$i]}"
   symlink=$( printf "%s\n" "$mapping" | \
-             sed -n -r -e "s/${regex_search}/\1/p" )
+             $SED -n -r -e "s/${regex_search}/\1/p" )
   target=$( printf "%s\n" "$mapping" | \
-            sed -n -r -e "s/${regex_search}/\2/p" )
+            $SED -n -r -e "s/${regex_search}/\2/p" )
 
   symlink="${run_dir}/$symlink"
   target="$FIXam/$target"
@@ -429,6 +438,19 @@ Call to function to create a model configuration file for the current
 cycle's (cdate) run directory (run_dir) failed:
   cdate = \"${cdate}\"
   run_dir = \"${run_dir}\""
+#
+#-----------------------------------------------------------------------
+#
+# Call the function that creates the model configuration file within each
+# cycle directory.
+#
+#-----------------------------------------------------------------------
+#
+create_diag_table_file \
+    run_dir="${run_dir}" || print_err_msg_exit "\
+      Call to function to create a diag table file for the current
+      cycle's (cdate) run directory (run_dir) failed:
+         run_dir = \"${run_dir}\""
 #
 #-----------------------------------------------------------------------
 #

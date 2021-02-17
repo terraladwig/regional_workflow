@@ -20,7 +20,7 @@
 . $USHDIR/link_fix.sh
 . $USHDIR/set_FV3nml_sfc_climo_filenames.sh
 . $USHDIR/set_FV3nml_stoch_params.sh
-. $USHDIR/create_diag_table_files.sh
+. $USHDIR/create_diag_table_file.sh
 #
 #-----------------------------------------------------------------------
 #
@@ -39,7 +39,7 @@
 #
 #-----------------------------------------------------------------------
 #
-scrfunc_fp=$( readlink -f "${BASH_SOURCE[0]}" )
+scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
 scrfunc_fn=$( basename "${scrfunc_fp}" )
 scrfunc_dir=$( dirname "${scrfunc_fp}" )
 #
@@ -145,6 +145,14 @@ case $MACHINE in
     export APRUN="time"
     ulimit -s unlimited
     ulimit -a
+    ;;
+
+  "MACOS")
+    APRUN=time
+    ;;
+
+  "LINUX")
+    APRUN=time
     ;;
 
   *)
@@ -433,11 +441,19 @@ uniform cubed-sphere grid equivalent resolution returned with nonzero exit
 code:
   exec_fp = \"${exec_fp}\""
 
+# Make sure 'ncdump' is available before we try to use it
+if ! command -v ncdump &> /dev/null
+then
+  print_err_msg_exit "\
+The utility 'ncdump' was not found in the environment. Be sure to add the
+netCDF 'bin/' directory to your PATH."
+fi
+
 # Make the following (reading of res_equiv) a function in another file
 # so that it can be used both here and in the exregional_make_orog.sh
 # script.
 res_equiv=$( ncdump -h "${grid_fp}" | \
-             grep -o ":RES_equiv = [0-9]\+" | grep -o "[0-9]" ) || \
+             grep -o ":RES_equiv = [0-9]\+" | $SED 's/[^0-9]*//g' ) || \
 print_err_msg_exit "\
 Attempt to extract the equivalent global uniform cubed-sphere grid reso-
 lution from the grid file (grid_fp) failed:
@@ -683,9 +699,6 @@ Call to function to set stochastic parameters in the FV3 namelist files
 for the various ensemble members failed."
 fi
 
-create_diag_table_files || print_err_msg_exit "\
-Call to function to create a diagnostics table file under each cycle
-directory failed."
 #
 #-----------------------------------------------------------------------
 #
