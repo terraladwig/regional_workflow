@@ -293,6 +293,7 @@ fi
   if [ "${extrn_mdl_name}" = "RAP" ] || \
      [ "${extrn_mdl_name}" = "HRRR" ] || \
      [ "${extrn_mdl_name}" = "NAM" ] || \
+     [ "${extrn_mdl_name}" = "GEFS" -a "${MACHINE}" = "JET" ] || \
      [ "${extrn_mdl_name}" = "FV3GFS" -a "${MACHINE}" = "JET" ]; then
 #
 # Get the Julian day-of-year of the starting date and time of the exter-
@@ -316,8 +317,10 @@ fi
 #
   if [ "${anl_or_fcst}" = "ANL" ]; then
     fv3gfs_file_fmt="${FV3GFS_FILE_FMT_ICS}"
+    gefs_file_fmt="grib2"
   elif [ "${anl_or_fcst}" = "FCST" ]; then
     fv3gfs_file_fmt="${FV3GFS_FILE_FMT_LBCS}"
+    gefs_file_fmt="grib2"
   fi
 
   case "${anl_or_fcst}" in
@@ -377,6 +380,11 @@ fi
         fns_in_arcv=( "gfs.t${hh}z.pgrb2.0p25.f000" )  # Get only 0.25 degree files for now.
 
       fi
+      ;;
+  
+    "GEFS")
+      fns_on_disk=( "${yy}${ddd}${hh}${mn}${fcst_mn}${fcst_hh}" )
+      fns_in_arcv=( "${yy}${ddd}${hh}${mn}${fcst_hh}${fcst_mn}" )
       ;;
 
     "RAP")
@@ -456,6 +464,13 @@ and analysis or forecast (anl_or_fcst):
         fns_in_arcv=( "${fcst_hhh[@]/#/$prefix}" )
 
       fi
+      ;;
+
+    "GEFS")
+      fcst_hh=( $( printf "%02d " "${lbc_spec_fhrs[@]}" ) )
+      prefix="${yy}${ddd}${hh}${mn}${fcst_mn}"
+      fns_on_disk=( "${fcst_hh[@]/#/$prefix}" )
+      fns_in_arcv=( "${fcst_hh[@]/#/$prefix}" )
       ;;
 
     "RAP")
@@ -611,6 +626,23 @@ has not been specified for this external model and machine combination:
     esac
     ;;
 
+  "GEFS")
+    case "$MACHINE" in
+    "HERA")
+       sysdir="$sysbasedir/${INPUT_ENSMEM_SUBDIR}"
+       ;;
+     "JET")
+       sysdir="$sysbasedir/${INPUT_ENSMEM_SUBDIR}"
+       ;;
+    *)
+      print_err_msg_exit "\
+The system directory in which to look for external model output files 
+has not been specified for this external model and machine combination:
+  extrn_mdl_name = \"${extrn_mdl_name}\"
+  MACHINE = \"$MACHINE\""
+      ;;
+    esac
+    ;;
 
   "RAP")
     case "$MACHINE" in
@@ -863,6 +895,14 @@ has not been specified for this external model:
     arcv_fps="$arcv_dir/$arcv_fns"
     arcvrel_dir=""
     ;;
+
+  "GEFS")
+     arcv_dir=""
+     arcv_fmt="tar"
+     arcv_fns=""
+     arcv_fps="$arcv_dir/$arcv_fns"
+     arcvrel_dir=""
+     ;;
 
   *)
     print_err_msg_exit "\

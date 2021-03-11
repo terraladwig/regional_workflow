@@ -109,6 +109,17 @@ else
     esac
     ;;
 
+  "GEFS")
+    case $MACHINE in
+    "HERA")
+      EXTRN_MDL_SYSBASEDIR_ICS=""
+      ;;
+    "JET")
+      EXTRN_MDL_SYSBASEDIR_ICS="/mnt/lfs4/HFIP/gsihyb/Chunhua.Zhou/data/GEFS/public/pgrb2"
+      ;;
+    esac
+    ;;
+
   "RAP")
     case $MACHINE in
     "HERA")
@@ -174,6 +185,9 @@ case ${EXTRN_MDL_NAME_LBCS} in
     ;;
   "FV3GFS")
     EXTRN_MDL_LBCS_OFFSET_HRS="0"
+    ;;
+  "GEFS")
+    EXTRN_MDL_LBCS_OFFSET_HRS="6"
     ;;
   "RAP")
     EXTRN_MDL_LBCS_OFFSET_HRS="3"
@@ -262,6 +276,17 @@ else
       ;;
     "STAMPEDE")
       EXTRN_MDL_SYSBASEDIR_LBCS="/scratch/00315/tg455890/GDAS/20190530/2019053000_mem001"
+      ;;
+    esac
+    ;;
+
+  "GEFS")
+    case $MACHINE in
+    "HERA")
+      EXTRN_MDL_SYSBASEDIR_ICS=""
+      ;;
+    "JET")
+      EXTRN_MDL_SYSBASEDIR_ICS="/mnt/lfs4/HFIP/gsihyb/Chunhua.Zhou/data/GEFS/public/pgrb2"
       ;;
     esac
     ;;

@@ -152,10 +152,12 @@ WFLOW_XML_FP="$EXPTDIR/${WFLOW_XML_FN}"
 ensmem_indx_name="\"\""
 uscore_ensmem_name="\"\""
 slash_ensmem_subdir="\"\""
+input_ensmem_subdir="\"\""
 if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
   ensmem_indx_name="mem"
   uscore_ensmem_name="_mem#${ensmem_indx_name}#"
   slash_ensmem_subdir="/mem#${ensmem_indx_name}#"
+  input_ensmem_subdir="/gep0#${ensmem_indx_name}#"
 fi
 
 settings="\
@@ -199,7 +201,8 @@ settings="\
 # Number of cores used for a task
 #
   'ncores_run_fcst': ${PE_MEMBER01}
-  'native_run_fcst': --cpus-per-task 4 --exclusive
+  'native_run_fcst': --cpus-per-task 4 
+#  'native_run_fcst': --cpus-per-task 4 --exclusive
 #
 # Number of logical processes per node for each task.  If running without
 # threading, this is equal to the number of MPI processes per node.
@@ -287,6 +290,7 @@ settings="\
   'ensmem_indx_name': ${ensmem_indx_name}
   'uscore_ensmem_name': ${uscore_ensmem_name}
   'slash_ensmem_subdir': ${slash_ensmem_subdir}
+  'input_ensmem_subdir': ${input_ensmem_subdir}
 " # End of "settings" variable.
 
 print_info_msg $VERBOSE "
