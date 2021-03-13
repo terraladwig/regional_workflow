@@ -102,6 +102,14 @@ run directory (run_dir):
 #
 #-----------------------------------------------------------------------
 #
+if [ "$hh" = "00" ]; then
+   FCST_LEN_HRS="${FCST_LEN_HRS_00Z}"
+elif [ "$hh" = "12" ]; then
+   FCST_LEN_HRS="${FCST_LEN_HRS_12Z}"
+fi
+#
+#-----------------------------------------------------------------------
+#
 # Create a multiline variable that consists of a yaml-compliant string
 # specifying the values that the jinja variables in the template 
 # model_configure file should be set to.

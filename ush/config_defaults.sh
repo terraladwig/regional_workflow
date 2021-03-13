@@ -387,6 +387,8 @@ DATE_FIRST_CYCL="YYYYMMDD"
 DATE_LAST_CYCL="YYYYMMDD"
 CYCL_HRS=( "HH1" "HH2" )
 FCST_LEN_HRS="24"
+FCST_LEN_HRS_00Z="24"
+FCST_LEN_HRS_12Z="24"
 #
 #-----------------------------------------------------------------------
 #
