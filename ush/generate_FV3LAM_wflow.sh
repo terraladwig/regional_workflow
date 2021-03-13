@@ -262,6 +262,7 @@ settings="\
 # External model information for generating ICs and LBCs.
 #
   'extrn_mdl_name_ics': ${EXTRN_MDL_NAME_ICS}
+  'extrn_mdl_ics_offset_hrs': ${EXTRN_MDL_ICS_OFFSET_HRS}
   'extrn_mdl_name_lbcs': ${EXTRN_MDL_NAME_LBCS}
   'extrn_mdl_sysbasedir_ics': ${EXTRN_MDL_SYSBASEDIR_ICS}
   'extrn_mdl_sysbasedir_lbcs': ${EXTRN_MDL_SYSBASEDIR_LBCS}

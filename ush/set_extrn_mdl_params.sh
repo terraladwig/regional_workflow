@@ -199,6 +199,27 @@ case ${EXTRN_MDL_NAME_LBCS} in
     EXTRN_MDL_LBCS_OFFSET_HRS="0"
     ;;
 esac
+
+case ${EXTRN_MDL_NAME_ICS} in
+  "GSMGFS")
+    EXTRN_MDL_ICS_OFFSET_HRS="0"
+    ;;
+  "FV3GFS")
+    EXTRN_MDL_ICS_OFFSET_HRS="0"
+    ;;
+  "GEFS")
+    EXTRN_MDL_ICS_OFFSET_HRS="6"
+    ;;
+  "RAP")
+    EXTRN_MDL_ICS_OFFSET_HRS="3"
+    ;;
+  "HRRR")
+    EXTRN_MDL_ICS_OFFSET_HRS="0"
+    ;;
+  "NAM")
+    EXTRN_MDL_ICS_OFFSET_HRS="0"
+    ;;
+esac
 #
 #-----------------------------------------------------------------------
 #

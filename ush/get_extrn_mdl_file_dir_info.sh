@@ -383,8 +383,10 @@ fi
       ;;
   
     "GEFS")
-      fns_on_disk=( "${yy}${ddd}${hh}${mn}${fcst_mn}${fcst_hh}" )
-      fns_in_arcv=( "${yy}${ddd}${hh}${mn}${fcst_hh}${fcst_mn}" )
+      fcst_hh=( $( printf "%02d " "${time_offset_hrs}" ) )
+      prefix="${yy}${ddd}${hh}${mn}${fcst_mn}"
+      fns_on_disk=( "${fcst_hh/#/$prefix}" )
+      fns_in_arcv=( "${fcst_hh/#/$prefix}" )
       ;;
 
     "RAP")

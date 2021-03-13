@@ -2657,6 +2657,7 @@ EXTRN_MDL_SYSBASEDIR_LBCS="${EXTRN_MDL_SYSBASEDIR_LBCS}"
 #-----------------------------------------------------------------------
 #
 EXTRN_MDL_LBCS_OFFSET_HRS="${EXTRN_MDL_LBCS_OFFSET_HRS}"
+EXTRN_MDL_ICS_OFFSET_HRS="${EXTRN_MDL_ICS_OFFSET_HRS}"
 #
 #-----------------------------------------------------------------------
 #
