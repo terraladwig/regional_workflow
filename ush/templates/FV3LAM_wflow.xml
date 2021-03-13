@@ -306,11 +306,11 @@ MODULES_RUN_TASK_FP script.
     <envar><name>INPUT_ENSMEM_SUBDIR</name><value><cyclestr>{{ input_ensmem_subdir }}</cyclestr></value></envar>
 
     <dependency>
-      <!-- Files through fhr 39 exist. -->
+      <!-- Files through fhr 66 exist. -->
       <sh>
         test $(find <cyclestr offset="-{{ extrn_mdl_lbcs_offset_hrs }}:00:00">{{ extrn_mdl_sysbasedir_lbcs }}{{ input_ensmem_subdir }}/ \
-                    -name @y@j@H*[0-3][0-9] -mmin +5 | wc -l)</cyclestr> \
-        -gt 18
+                    -name @y@j@H*[0-6][0-9] -mmin +5 | wc -l)</cyclestr> \
+        -gt 22
       </sh>
     </dependency>
 
