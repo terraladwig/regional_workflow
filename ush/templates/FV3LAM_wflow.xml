@@ -87,7 +87,7 @@ tasks; and the "FCST" type is used for the RUN_FCST_TN task.
 <!ENTITY RSRV_FCST    "<account>&ACCOUNT;</account><queue>&QUEUE_FCST;</queue>">
 {%- endif %}
 
-<!ENTITY DEADLINE_PRE      "16:00:00">
+<!ENTITY DEADLINE_PRE      "08:00:00">
 <!ENTITY DEADLINE_FCST     "23:30:00">
 <!ENTITY DEADLINE_POST     "24:00:00">
 <!ENTITY DEADLINE_GRAPHICS "24:00:00">
