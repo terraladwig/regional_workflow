@@ -483,15 +483,15 @@ cycle's (cdate) run directory (run_dir) failed:
 #
 #-----------------------------------------------------------------------
 #
-if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
-  if [ "${MACHINE}" = "WCOSS_CRAY" ]; then
-    relative_or_null=""
-  else
-    relative_or_null="--relative"
-  fi
-  diag_table_fp="${cycle_dir}/${DIAG_TABLE_FN}"
-  ln_vrfy -sf ${relative_or_null} ${diag_table_fp} ${run_dir}
-fi
+#if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
+#  if [ "${MACHINE}" = "WCOSS_CRAY" ]; then
+#    relative_or_null=""
+#  else
+#    relative_or_null="--relative"
+#  fi
+#  diag_table_fp="${cycle_dir}/${DIAG_TABLE_FN}"
+#  ln_vrfy -sf ${relative_or_null} ${diag_table_fp} ${run_dir}
+#fi
 #
 #-----------------------------------------------------------------------
 #
