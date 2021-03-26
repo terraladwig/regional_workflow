@@ -438,6 +438,8 @@ case $MACHINE in
     QUEUE_HPSS=${QUEUE_HPSS:-"batch"}
     PARTITION_FCST=${PARTITION_FCST:-"sjet,vjet,kjet,xjet"}
     QUEUE_FCST=${QUEUE_FCST:-"batch"}
+    PARTITION_GRAPHICS=${PARTITION_GRAPHICS:-"kjet,xjet"}
+    QUEUE_GRAPHICS=${QUEUE_GRAPHICS:-"batch"}
     ;;
 
   "ODIN")

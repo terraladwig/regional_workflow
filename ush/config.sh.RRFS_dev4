@@ -1,10 +1,19 @@
 MACHINE="jet"
 ACCOUNT="nrtrr"
+RESERVATION="rrfsdet"
 EXPT_BASEDIR="/home/rtrr/RRFS"
 EXPT_SUBDIR="RRFS_dev4"
 
+if [[ -n $RESERVATION ]] ; then
+  ACCOUNT=rtrr
+  PARTITION_DEFAULT=kjet
+  PARTITION_FCST=kjet
+  PARTITION_GRAPHICS=kjet
+fi
+
 FIXLAM_NCO_BASEDIR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_lam.20210128
 FIXgsm=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_am.20210128
+GWD_HRRRsuite_BASEDIR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_lam.20210128
 
 VERBOSE="TRUE"
 
@@ -33,6 +42,7 @@ EXTRN_MDL_NAME_LBCS="RAP"
 envir="para"
 
 NET="RRFS_CONUS"
+TAG="RRFS_dev4_CONUS"
 
 USE_CUSTOM_POST_CONFIG_FILE="TRUE"
 CUSTOM_POST_CONFIG_FP="/mnt/lfs4/BMC/nrtrr/RRFS/dev4-ufs-srweather-app/src/EMC_post/parm/postxconfig-NT-fv3lam_rrfs.txt"

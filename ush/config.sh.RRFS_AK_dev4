@@ -1,10 +1,19 @@
 MACHINE="jet"
 ACCOUNT="nrtrr"
+RESERVATION="rrfsdet"
 EXPT_BASEDIR="/home/rtrr/RRFS"
 EXPT_SUBDIR="RRFS_AK_dev4"
 
+if [[ -n $RESERVATION ]] ; then
+  ACCOUNT=rtrr
+  PARTITION_DEFAULT=kjet
+  PARTITION_FCST=kjet
+  PARTITION_GRAPHICS=kjet
+fi
+
 FIXLAM_NCO_BASEDIR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_lam.20210128
 FIXgsm=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_am.20210128
+GWD_HRRRsuite_BASEDIR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_lam.20210128
 
 VERBOSE="TRUE"
 
@@ -33,6 +42,7 @@ EXTRN_MDL_NAME_LBCS="RAP"
 envir="para"
 
 NET="RRFS_AK_dev4"
+TAG="RRFS_dev4_AK"
 
 ARCHIVEDIR="/5year/BMC/wrfruc/rrfs_ak_dev4"
 NCARG_ROOT="/apps/ncl/6.5.0-CentOS6.10_64bit_nodap_gnu447"
