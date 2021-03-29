@@ -121,6 +121,9 @@ case "$MACHINE" in
     ;;
 
   "LINUX")
+    ulimit -s unlimited
+    export OMP_STACKSIZE=1024m
+    export OMP_NUM_THREADS=1
     APRUN=$RUN_CMD_UTILS
     ;;
 
@@ -181,6 +184,7 @@ case "${CCPP_PHYS_SUITE}" in
       varmap_file="GSDphys_var_map.txt"
     elif [ "${EXTRN_MDL_NAME_LBCS}" = "NAM" ] || \
          [ "${EXTRN_MDL_NAME_LBCS}" = "FV3GFS" ] || \
+         [ "${EXTRN_MDL_NAME_LBCS}" = "GEFS" ] || \
          [ "${EXTRN_MDL_NAME_LBCS}" = "GSMGFS" ]; then
       varmap_file="GFSphys_var_map.txt"
     fi
@@ -327,6 +331,12 @@ case "${EXTRN_MDL_NAME_LBCS}" in
   fi
   ;;
 
+"GEFS")
+  external_model="GFS"
+  fn_grib2="${EXTRN_MDL_FNS[0]}"
+  input_type="grib2"
+  ;;
+
 "RAP")
   external_model="RAP"
   input_type="grib2"
@@ -397,6 +407,10 @@ for (( i=0; i<${num_fhrs}; i++ )); do
     elif [ "${FV3GFS_FILE_FMT_LBCS}" = "grib2" ]; then
       fn_grib2="${EXTRN_MDL_FNS[$i]}"
     fi
+    ;;
+
+  "GEFS")
+    fn_grib2="${EXTRN_MDL_FNS[$i]}"
     ;;
   "RAP")
     fn_grib2="${EXTRN_MDL_FNS[$i]}"

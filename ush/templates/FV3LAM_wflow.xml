@@ -219,6 +219,7 @@ MODULES_RUN_TASK_FP script.
 ************************************************************************
 ************************************************************************
 -->
+
   <task name="&GET_EXTRN_ICS_TN;" maxtries="{{ maxtries_get_extrn_ics }}">
 
     &RSRV_HPSS;
@@ -241,6 +242,7 @@ MODULES_RUN_TASK_FP script.
     <envar><name>CYCLE_DIR</name><value><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H</cyclestr></value></envar>
     <envar><name>EXTRN_MDL_NAME</name><value>{{ extrn_mdl_name_ics }}</value></envar>
     <envar><name>ICS_OR_LBCS</name><value>ICS</value></envar>
+    <envar><name>MEMBER</name><value>{{ gefs_member }}</value></envar>
 
   </task>
 <!--
@@ -269,6 +271,7 @@ MODULES_RUN_TASK_FP script.
     <envar><name>CYCLE_DIR</name><value><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H</cyclestr></value></envar>
     <envar><name>EXTRN_MDL_NAME</name><value>{{ extrn_mdl_name_lbcs }}</value></envar>
     <envar><name>ICS_OR_LBCS</name><value>LBCS</value></envar>
+    <envar><name>MEMBER</name><value>{{ gefs_member }}</value></envar>
 
   </task>
 <!--
@@ -291,6 +294,7 @@ MODULES_RUN_TASK_FP script.
     <command>&LOAD_MODULES_RUN_TASK_FP; "&MAKE_ICS_TN;" "&JOBSDIR;/JREGIONAL_MAKE_ICS"</command>
     <nodes>{{ nnodes_make_ics }}:ppn={{ ppn_make_ics }}</nodes>
     <walltime>{{ wtime_make_ics }}</walltime>
+    <exclusive/>
     <nodesize>&NCORES_PER_NODE;</nodesize>
     <jobname>&MAKE_ICS_TN;{{ uscore_ensmem_name }}</jobname>
     <join><cyclestr>&LOGDIR;/&MAKE_ICS_TN;{{ uscore_ensmem_name }}_@Y@m@d@H.log</cyclestr></join>
@@ -332,6 +336,7 @@ MODULES_RUN_TASK_FP script.
     &RSRV_DEFAULT;
     <command>&LOAD_MODULES_RUN_TASK_FP; "&MAKE_LBCS_TN;" "&JOBSDIR;/JREGIONAL_MAKE_LBCS"</command>
     <nodes>{{ nnodes_make_lbcs }}:ppn={{ ppn_make_lbcs }}</nodes>
+    <exclusive/>
     <walltime>{{ wtime_make_lbcs }}</walltime>
     <nodesize>&NCORES_PER_NODE;</nodesize>
     <jobname>&MAKE_LBCS_TN;{{ uscore_ensmem_name }}</jobname>
@@ -412,6 +417,7 @@ MODULES_RUN_TASK_FP script.
       &RSRV_DEFAULT;
       <command>&LOAD_MODULES_RUN_TASK_FP; "&RUN_POST_TN;" "&JOBSDIR;/JREGIONAL_RUN_POST"</command>
       <nodes>{{ nnodes_run_post }}:ppn={{ ppn_run_post }}</nodes>
+      <exclusive/>
       <walltime>{{ wtime_run_post }}</walltime>
       <nodesize>&NCORES_PER_NODE;</nodesize>
       <jobname>&RUN_POST_TN;{{ uscore_ensmem_name }}_f#fhr#</jobname>

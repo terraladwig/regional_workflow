@@ -61,6 +61,7 @@ function get_extrn_mdl_file_dir_info() {
     "extrn_mdl_name" \
     "anl_or_fcst" \
     "cdate_FV3LAM" \
+    "mem" \
     "time_offset_hrs" \
     "varname_extrn_mdl_cdate" \
     "varname_extrn_mdl_lbc_spec_fhrs" \
@@ -368,15 +369,25 @@ fi
 
       elif [ "${fv3gfs_file_fmt}" = "grib2" ]; then
 
+        fcst_hhh=( $( printf "%03d " "${time_offset_hrs}" ) )
+
 # GSK 12/16/2019:
 # Turns out that the .f000 file contains certain necessary fields that
 # are not in the .anl file, so switch to the former.
 #        fns=( "gfs.t${hh}z.pgrb2.0p25.anl" )  # Get only 0.25 degree files for now.
 #        fns=( "gfs.t${hh}z.pgrb2.0p25.f000" )  # Get only 0.25 degree files for now.
-        fns_on_disk=( "gfs.t${hh}z.pgrb2.0p25.f000" )  # Get only 0.25 degree files for now.
-        fns_in_arcv=( "gfs.t${hh}z.pgrb2.0p25.f000" )  # Get only 0.25 degree files for now.
+        fns_on_disk=( "gfs.t${hh}z.pgrb2.0p25.f${fcst_hhh}" )  # Get only 0.25 degree files for now.
+        fns_in_arcv=( "gfs.t${hh}z.pgrb2.0p25.f${fcst_hhh}" )  # Get only 0.25 degree files for now.
 
       fi
+      ;;
+
+    "GEFS")
+
+      fcst_hhh=( $( printf "%03d " "${time_offset_hrs}" ) )
+      fns_on_disk="gep${mem:-01}.t${hh}z.pgrb2.0p50.f${fcst_hhh}"
+      fns_in_arcv=
+
       ;;
 
     "RAP")
@@ -472,6 +483,14 @@ and analysis or forecast (anl_or_fcst):
         fns_in_arcv=( "${fcst_hhh[@]/#/$prefix}" )
 
       fi
+      ;;
+
+    "GEFS")
+
+      fcst_hhh=( $( printf "%03d " "${lbc_spec_fhrs[@]}" ) )
+      prefix="gep${mem:-01}.t${hh}z.pgrb2.0p50.f"
+      fns_on_disk=( "${fcst_hhh[@]/#/$prefix}" )
+
       ;;
 
     "RAP")
@@ -631,6 +650,9 @@ has not been specified for this external model and machine combination:
     "STAMPEDE")
       sysdir="$sysbasedir"
       ;;
+    "LINUX")
+      sysdir="$sysbasedir/${yyyymmdd}${hh}"
+      ;;
     *)
       if [ "${USE_USER_STAGED_EXTRN_FILES}" != "TRUE" ]; then
         print_err_msg_exit "\
@@ -643,6 +665,9 @@ has not been specified for this external model and machine combination:
     esac
     ;;
 
+  "GEFS")
+    sysdir="$sysbasedir/${yyyymmdd}${hh}/gep${mem}"
+    ;;
 
   "RAP")
     case "$MACHINE" in
@@ -758,6 +783,7 @@ The system directory in which to look for external model output files
 has not been specified for this external model:
   extrn_mdl_name = \"${extrn_mdl_name}\""
     fi
+    ;;
   esac
 #
 #-----------------------------------------------------------------------
@@ -845,6 +871,12 @@ has not been specified for this external model:
     fi
     ;;
 
+  "GEFS")
+    arcv_fns=""
+    arcv_fps=""
+    arcv_fmt=""
+    arcvrel_dir=""
+    ;;
 
   "RAP")
 #
@@ -905,7 +937,7 @@ has not been specified for this external model:
     ;;
 
   *)
-    print_err_msg_exit "\
+    print_info_msg "\
 Archive file information has not been specified for this external model:
   extrn_mdl_name = \"${extrn_mdl_name}\""
     ;;

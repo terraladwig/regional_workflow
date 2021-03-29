@@ -150,7 +150,11 @@ case $MACHINE in
     ;;
 
   "LINUX")
-    OMP_NUM_THREADS=$(( NCORES_PER_NODE / PPN_RUN_FCST ))
+    ulimit -s unlimited
+    export KMP_AFFINITY=scatter
+    export MKL_NUM_THREADS=1
+    export OMP_STACKSIZE=2048m
+    export OMP_NUM_THREADS=$(( NCORES_PER_NODE / PPN_RUN_FCST ))
     APRUN=$RUN_CMD_FCST
     ;;
 
@@ -433,7 +437,7 @@ fi
 #
 create_model_configure_file \
   cdate="$cdate" \
-  nthreads=${OMP_NUM_THREADS:-1} \
+  nthreads=${OMP_NUM_THREADS:-4} \
   run_dir="${run_dir}" || print_err_msg_exit "\
 Call to function to create a model configuration file for the current
 cycle's (cdate) run directory (run_dir) failed:

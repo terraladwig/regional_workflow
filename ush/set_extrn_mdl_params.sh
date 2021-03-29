@@ -43,7 +43,7 @@ local func_name="${FUNCNAME[0]}"
 #
 #-----------------------------------------------------------------------
 #
-if [ "${RUN_ENVIR}" = "nco" ]; then
+if [[ "${RUN_ENVIR}" == "nco" && ! -z ${COMINgfs} ]]; then
 
   EXTRN_MDL_SYSBASEDIR_ICS="$COMINgfs"
 
@@ -158,7 +158,10 @@ case ${EXTRN_MDL_NAME_LBCS} in
     EXTRN_MDL_LBCS_OFFSET_HRS="0"
     ;;
   "FV3GFS")
-    EXTRN_MDL_LBCS_OFFSET_HRS="0"
+    EXTRN_MDL_LBCS_OFFSET_HRS="6"
+    ;;
+  "GEFS")
+    EXTRN_MDL_LBCS_OFFSET_HRS="6"
     ;;
   "RAP")
     EXTRN_MDL_LBCS_OFFSET_HRS="3"
@@ -182,7 +185,7 @@ esac
 #
 #-----------------------------------------------------------------------
 #
-if [ "${RUN_ENVIR}" = "nco" ]; then
+if [[ "${RUN_ENVIR}" == "nco" && ! -z ${COMINgfs} ]]; then
 
   EXTRN_MDL_SYSBASEDIR_LBCS="$COMINgfs"
 

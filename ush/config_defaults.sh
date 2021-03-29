@@ -1350,6 +1350,8 @@ CUSTOM_POST_CONFIG_FP=""
 #
 DO_ENSEMBLE="FALSE"
 NUM_ENS_MEMBERS="1"
+NDIGITS_ENSMEM_NAMES=${#NUM_ENS_MEMBERS}
+GEFS_MEMBER="01"
 #
 #-----------------------------------------------------------------------
 #

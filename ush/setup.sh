@@ -1406,11 +1406,9 @@ elif [ "$DO_ENSEMBLE" = "FALSE" ] || \
      [ "$DO_ENSEMBLE" = "NO" ]; then
   DO_ENSEMBLE="FALSE"
 fi
-NDIGITS_ENSMEM_NAMES="0"
 ENSMEM_NAMES=("")
 FV3_NML_ENSMEM_FPS=("")
 if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
-  NDIGITS_ENSMEM_NAMES="${#NUM_ENS_MEMBERS}"
 # Strip away all leading zeros in NUM_ENS_MEMBERS by converting it to a 
 # decimal (leading zeros will cause bash to interpret the number as an 
 # octal).  Note that the variable definitions file will therefore contain

@@ -1,0 +1,76 @@
+MACHINE="LINUX"
+ACCOUNT="an_account"
+WORKFLOW_MANAGER="rocoto"
+SCHED="slurm"
+
+EXPT_BASEDIR="/lustre"
+EXPT_SUBDIR="GFS"
+
+RUN_CMD_UTILS="srun --mpi=pmi2"
+RUN_CMD_FCST="srun --mpi=pmi2"
+RUN_CMD_POST="srun --mpi=pmi2"
+
+NCORES_PER_NODE="36"
+PPN_RUN_FCST="18"
+LAYOUT_X="36"
+LAYOUT_Y="18"
+WRTCMP_write_groups="1"
+WRTCMP_write_tasks_per_group="72"
+
+PARTITION_DEFAULT=
+QUEUE_DEFAULT=
+PARTITION_HPSS=
+QUEUE_HPSS=
+PARTITION_FCST=
+QUEUE_FCST=
+
+LMOD_PATH="/apps/lmod/lmod/init/sh"
+BUILD_ENV_FN="build_aws_intel.env"
+
+# Copied directly from setup.sh HERA settings
+DO_ENSEMBLE="FALSE"
+NUM_ENS_MEMBERS="1"
+NDIGITS_ENSMEM_NAMES="2"
+
+# Get external model files staged on disk
+COMINgfs="/lustre/data/gfs"
+
+VERBOSE="TRUE"
+
+PREDEF_GRID_NAME="RRFS_NA_3km"
+NET="RRFS_NA_GFS"
+RUN="RRFS_NA_GFS"
+
+EXTRN_MDL_NAME_ICS="FV3GFS"
+EXTRN_MDL_NAME_LBCS="FV3GFS"
+
+FV3GFS_FILE_FMT_ICS="grib2"
+FV3GFS_FILE_FMT_LBCS="grib2"
+
+RUN_ENVIR="nco"
+envir="para"
+PREEXISTING_DIR_METHOD="rename"
+
+QUILTING="TRUE"
+
+CCPP_PHYS_SUITE="FV3_GSD_SAR"
+FCST_LEN_HRS="3"
+LBC_SPEC_INTVL_HRS="3"
+
+HALO_BLEND=10
+
+WTIME_RUN_FCST="03:45:00"
+WTIME_RUN_POST="1:00:00"
+
+DATE_FIRST_CYCL="20210224"
+DATE_LAST_CYCL="20210224"
+CYCL_HRS=( "00" )
+
+STMP="/lustre/stmp"
+PTMP="/lustre/ptmp"
+
+# The following are specifically for AWS using Parallel Works
+FIXgsm=${FIXgsm:-"/lustre/NCEPDEV/global/glopara/fix/fix_am"}
+TOPO_DIR=${TOPO_DIR:-"/lustre/NCEPDEV/global/glopara/fix/fix_orog"}
+SFC_CLIMO_INPUT_DIR=${SFC_CLIMO_INPUT_DIR:-"/lustre/NCEPDEV/global/glopara/fix/fix_sfc_climo"}
+FIXLAM_NCO_BASEDIR=${FIXLAM_NCO_BASEDIR:-"/lustre/NCEPDEV/global/glopara/fix"}

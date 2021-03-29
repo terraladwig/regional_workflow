@@ -204,12 +204,14 @@ done
 if [ "${num_files_found_on_disk}" -eq "${num_files_to_copy}" ]; then
   data_src="disk"
 else
-  data_src="HPSS"
+  print_err_msg_exit "\
+    Cannot find all required input files on disk!"
 fi
 
 if [ ${NOMADS} == "TRUE" ]; then
   data_src="online"
 fi
+
 #
 #-----------------------------------------------------------------------
 #
