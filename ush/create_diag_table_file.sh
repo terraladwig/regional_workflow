@@ -67,6 +67,7 @@ function create_diag_table_file() {
 #-----------------------------------------------------------------------
 #
   local i \
+        ensmem \
         diag_table_fp \
         settings
 #
@@ -76,6 +77,9 @@ function create_diag_table_file() {
 #
 #-----------------------------------------------------------------------
 #
+
+ensmem=$(( ${ENSMEM_INDX} - 1 ))
+
   print_info_msg "$VERBOSE" "                                            
 Creating a diagnostics table file (\"${DIAG_TABLE_FN}\")  in the
 specified run
@@ -89,7 +93,7 @@ directory (run_dir):
   print_info_msg "$VERBOSE" "
 Using the template diagnostics table file:
 
-  diag_table_tmpl_fp = ${DIAG_TABLE_TMPL_FP}
+  diag_table_tmpl_fp = ${DIAG_TABLE_TMPL_FP[$ensmem]}
 
 to create:
 
@@ -100,7 +104,7 @@ to create:
   cres: ${CRES}
 "
 
-  $USHDIR/fill_jinja_template.py -q -u "${settings}" -t "${DIAG_TABLE_TMPL_FP}" -o "${diag_table_fp}" || \
+  $USHDIR/fill_jinja_template.py -q -u "${settings}" -t "${DIAG_TABLE_TMPL_FP[$ensmem]}" -o "${diag_table_fp}" || \
   print_err_msg_exit "
 !!!!!!!!!!!!!!!!!
 

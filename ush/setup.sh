@@ -545,15 +545,18 @@ check_var_valid_value \
 #
 #-----------------------------------------------------------------------
 #
-# Make sure CCPP_PHYS_SUITE is set to a valid value.
+# Make sure all CCPP Physics SUITEs are set to a valid value.
 #
 #-----------------------------------------------------------------------
 #
-err_msg="\
-The CCPP physics suite specified in CCPP_PHYS_SUITE is not supported:
-  CCPP_PHYS_SUITE = \"${CCPP_PHYS_SUITE}\""
-check_var_valid_value \
-  "CCPP_PHYS_SUITE" "valid_vals_CCPP_PHYS_SUITE" "${err_msg}"
+
+for suite in ${SUITES[@]} ; do
+  err_msg="\
+  The CCPP physics suite specified in CCPP_PHYS_SUITE is not supported:
+    CCPP_PHYS_SUITE = \"${CCPP_PHYS_SUITE}\""
+  check_var_valid_value \
+    "suite" "valid_vals_CCPP_PHYS_SUITE" "${err_msg}"
+done
 #
 #-----------------------------------------------------------------------
 #
@@ -820,25 +823,6 @@ cated (UFS_UTILS_DIR) does not exist:
   UFS_UTILS_DIR = \"${UFS_UTILS_DIR}\"
 Please clone the external repository containing the code in this direct-
 ory, build the executables, and then rerun the workflow."
-fi
-#
-# Get the base directory of the EMC_post code.
-#
-external_name="EMC_post"
-EMC_POST_DIR=$( \
-get_manage_externals_config_property \
-"${mng_extrns_cfg_fn}" "${external_name}" "${property_name}" ) || \
-print_err_msg_exit "\
-Call to function get_manage_externals_config_property failed."
-
-EMC_POST_DIR="${SR_WX_APP_TOP_DIR}/${EMC_POST_DIR}"
-if [ ! -d "${EMC_POST_DIR}" ]; then
-  print_err_msg_exit "\
-The base directory in which the EMC_post source code should be located
-(EMC_POST_DIR) does not exist:
-  EMS_POST_DIR = \"${EMC_POST_DIR}\"
-Please clone the external repository containing the code in this directory,
-build the executable, and then rerun the workflow."
 fi
 #
 #-----------------------------------------------------------------------
@@ -1247,95 +1231,142 @@ fi
 #
 #-----------------------------------------------------------------------
 #
-dot_ccpp_phys_suite_or_null=".${CCPP_PHYS_SUITE}"
 
 DATA_TABLE_TMPL_FN="${DATA_TABLE_FN}"
-DIAG_TABLE_TMPL_FN="${DIAG_TABLE_FN}${dot_ccpp_phys_suite_or_null}"
-FIELD_TABLE_TMPL_FN="${FIELD_TABLE_FN}${dot_ccpp_phys_suite_or_null}"
 MODEL_CONFIG_TMPL_FN="${MODEL_CONFIG_FN}"
 NEMS_CONFIG_TMPL_FN="${NEMS_CONFIG_FN}"
 
 DATA_TABLE_TMPL_FP="${TEMPLATE_DIR}/${DATA_TABLE_TMPL_FN}"
-DIAG_TABLE_TMPL_FP="${TEMPLATE_DIR}/${DIAG_TABLE_TMPL_FN}"
-FIELD_TABLE_TMPL_FP="${TEMPLATE_DIR}/${FIELD_TABLE_TMPL_FN}"
 FV3_NML_BASE_SUITE_FP="${TEMPLATE_DIR}/${FV3_NML_BASE_SUITE_FN}"
 FV3_NML_YAML_CONFIG_FP="${TEMPLATE_DIR}/${FV3_NML_YAML_CONFIG_FN}"
 FV3_NML_BASE_ENS_FP="${EXPTDIR}/${FV3_NML_BASE_ENS_FN}"
 MODEL_CONFIG_TMPL_FP="${TEMPLATE_DIR}/${MODEL_CONFIG_TMPL_FN}"
 NEMS_CONFIG_TMPL_FP="${TEMPLATE_DIR}/${NEMS_CONFIG_TMPL_FN}"
-#
-#-----------------------------------------------------------------------
-#
-# Set:
-#
-# 1) the variable CCPP_PHYS_SUITE_FN to the name of the CCPP physics 
-#    suite definition file.
-# 2) the variable CCPP_PHYS_SUITE_IN_CCPP_FP to the full path of this 
-#    file in the forecast model's directory structure.
-# 3) the variable CCPP_PHYS_SUITE_FP to the full path of this file in 
-#    the experiment directory.
-#
-# Note that the experiment/workflow generation scripts will copy this
-# file from CCPP_PHYS_SUITE_IN_CCPP_FP to CCPP_PHYS_SUITE_FP.  Then, for
-# each cycle, the forecast launch script will create a link in the cycle
-# run directory to the copy of this file at CCPP_PHYS_SUITE_FP.
-#
-#-----------------------------------------------------------------------
-#
-CCPP_PHYS_SUITE_FN="suite_${CCPP_PHYS_SUITE}.xml"
-CCPP_PHYS_SUITE_IN_CCPP_FP="${UFS_WTHR_MDL_DIR}/FV3/ccpp/suites/${CCPP_PHYS_SUITE_FN}"
-CCPP_PHYS_SUITE_FP="${EXPTDIR}/${CCPP_PHYS_SUITE_FN}"
-if [ ! -f "${CCPP_PHYS_SUITE_IN_CCPP_FP}" ]; then
-  print_err_msg_exit "\
-The CCPP suite definition file (CCPP_PHYS_SUITE_IN_CCPP_FP) does not exist
-in the local clone of the ufs-weather-model:
-  CCPP_PHYS_SUITE_IN_CCPP_FP = \"${CCPP_PHYS_SUITE_IN_CCPP_FP}\""
-fi
-#
-#-----------------------------------------------------------------------
-#
-# Call the function that sets the ozone parameterization being used and
-# modifies associated parameters accordingly. 
-#
-#-----------------------------------------------------------------------
-#
-set_ozone_param \
-  ccpp_phys_suite_fp="${CCPP_PHYS_SUITE_IN_CCPP_FP}" \
-  output_varname_ozone_param="OZONE_PARAM"
-#
-#-----------------------------------------------------------------------
-#
-# Set the full paths to those forecast model input files that are cycle-
-# independent, i.e. they don't include information about the cycle's 
-# starting day/time.  These are:
-#
-#   * The data table file [(1) in the list above)]
-#   * The field table file [(3) in the list above)]
-#   * The FV3 namelist file [(4) in the list above)]
-#   * The NEMS configuration file [(6) in the list above)]
-#
-# Since they are cycle-independent, the experiment/workflow generation
-# scripts will place them in the main experiment directory (EXPTDIR).
-# The script that runs each cycle will then create links to these files
-# in the run directories of the individual cycles (which are subdirecto-
-# ries under EXPTDIR).  
-# 
-# The remaining two input files to the forecast model, i.e.
-#
-#   * The diagnostics table file [(2) in the list above)]
-#   * The model configuration file [(5) in the list above)]
-#
-# contain parameters that depend on the cycle start date.  Thus, custom
-# versions of these two files must be generated for each cycle and then
-# placed directly in the run directories of the cycles (not EXPTDIR).
-# For this reason, the full paths to their locations vary by cycle and
-# cannot be set here (i.e. they can only be set in the loop over the 
-# cycles in the rocoto workflow XML file).
-#
-#-----------------------------------------------------------------------
-#
-DATA_TABLE_FP="${EXPTDIR}/${DATA_TABLE_FN}"
-FIELD_TABLE_FP="${EXPTDIR}/${FIELD_TABLE_FN}"
+
+DIAG_TABLE_TMPL_FP=()
+FIELD_TABLE_TMPL_FP=()
+FIELD_TABLE_FP=()
+CCPP_PHYS_SUITE_FP=()
+CCPP_PHYS_SUITE_IN_CCPP_FP=()
+
+for suite in ${SUITES[@]} ; do
+
+  dot_ccpp_phys_suite_or_null=".${suite}"
+  DIAG_TABLE_TMPL_FN="${DIAG_TABLE_FN}${dot_ccpp_phys_suite_or_null}"
+  FIELD_TABLE_TMPL_FN="${FIELD_TABLE_FN}${dot_ccpp_phys_suite_or_null}"
+
+  DIAG_TABLE_TMPL_FP+=("${TEMPLATE_DIR}/${DIAG_TABLE_TMPL_FN}")
+  FIELD_TABLE_TMPL_FP+=("${TEMPLATE_DIR}/${FIELD_TABLE_TMPL_FN}")
+
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Set:
+  #
+  # 1) the variable CCPP_PHYS_SUITE_FN to the name of the CCPP physics 
+  #    suite definition file.
+  # 2) the variable CCPP_PHYS_SUITE_IN_CCPP_FP to the full path of this 
+  #    file in the forecast model's directory structure.
+  # 3) the variable CCPP_PHYS_SUITE_FP to the full path of this file in 
+  #    the experiment directory.
+  #
+  # Note that the experiment/workflow generation scripts will copy this
+  # file from CCPP_PHYS_SUITE_IN_CCPP_FP to CCPP_PHYS_SUITE_FP.  Then, for
+  # each cycle, the forecast launch script will create a link in the cycle
+  # run directory to the copy of this file at CCPP_PHYS_SUITE_FP.
+  #
+  #-----------------------------------------------------------------------
+  #
+  CCPP_PHYS_SUITE_FN="suite_${suite}.xml"
+  CCPP_PHYS_SUITE_IN_CCPP_FP+=("${TEMPLATE_DIR}/suites/${CCPP_PHYS_SUITE_FN}")
+  CCPP_PHYS_SUITE_FP+=("${EXPTDIR}/${CCPP_PHYS_SUITE_FN}")
+  if [ ! -f "${CCPP_PHYS_SUITE_IN_CCPP_FP[-1]}" ]; then
+    print_err_msg_exit "\
+  The CCPP suite definition file (CCPP_PHYS_SUITE_IN_CCPP_FP) does not exist
+  in the local clone of the ufs-weather-model:
+    CCPP_PHYS_SUITE_IN_CCPP_FP = \"${CCPP_PHYS_SUITE_IN_CCPP_FP[-1]}\""
+  fi
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Call the function that sets the ozone parameterization being used and
+  # modifies associated parameters accordingly. 
+  #
+  #-----------------------------------------------------------------------
+  #
+  set_ozone_param \
+    ccpp_phys_suite_fp="${CCPP_PHYS_SUITE_IN_CCPP_FP[-1]}" \
+    output_varname_ozone_param="OZONE_PARAM"
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Set the name of the file containing aerosol climatology data that, if
+  # necessary, can be used to generate approximate versions of the aerosol 
+  # fields needed by Thompson microphysics.  This file will be used to 
+  # generate such approximate aerosol fields in the ICs and LBCs if
+  # Thompson 
+  # MP is included in the physics suite and if the exteranl model for ICs
+  # or LBCs does not already provide these fields.  Also, set the full
+  # path
+  # to this file.
+  #
+  #-----------------------------------------------------------------------
+  #
+  THOMPSON_MP_CLIMO_FN="Thompson_MP_MONTHLY_CLIMO.nc"
+  THOMPSON_MP_CLIMO_FP="$FIXam/${THOMPSON_MP_CLIMO_FN}"
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Call the function that, if the Thompson microphysics parameterization
+  # is being called by the physics suite, modifies certain workflow arrays
+  # to ensure that fixed files needed by this parameterization are copied
+  # to the FIXam directory and appropriate symlinks to them are created in
+  # the run directories.  This function also sets the workflow variable
+  # THOMPSON_MP_USED that indicates whether Thompson MP is called by the
+  # physics suite.
+  #
+  #-----------------------------------------------------------------------
+  #
+  set_thompson_mp_fix_files \
+    ccpp_phys_suite_fp="${CCPP_PHYS_SUITE_IN_CCPP_FP[-1]}" \
+    thompson_mp_climo_fn="${THOMPSON_MP_CLIMO_FN}" \
+    output_varname_thompson_mp_used="THOMPSON_MP_USED"
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Set the full paths to those forecast model input files that are cycle-
+  # independent, i.e. they don't include information about the cycle's 
+  # starting day/time.  These are:
+  #
+  #   * The data table file [(1) in the list above)]
+  #   * The field table file [(3) in the list above)]
+  #   * The FV3 namelist file [(4) in the list above)]
+  #   * The NEMS configuration file [(6) in the list above)]
+  #
+  # Since they are cycle-independent, the experiment/workflow generation
+  # scripts will place them in the main experiment directory (EXPTDIR).
+  # The script that runs each cycle will then create links to these files
+  # in the run directories of the individual cycles (which are subdirecto-
+  # ries under EXPTDIR).  
+  # 
+  # The remaining two input files to the forecast model, i.e.
+  #
+  #   * The diagnostics table file [(2) in the list above)]
+  #   * The model configuration file [(5) in the list above)]
+  #
+  # contain parameters that depend on the cycle start date.  Thus, custom
+  # versions of these two files must be generated for each cycle and then
+  # placed directly in the run directories of the cycles (not EXPTDIR).
+  # For this reason, the full paths to their locations vary by cycle and
+  # cannot be set here (i.e. they can only be set in the loop over the 
+  # cycles in the rocoto workflow XML file).
+  #
+  #-----------------------------------------------------------------------
+  #
+  DATA_TABLE_FP="${EXPTDIR}/${DATA_TABLE_FN}"
+  FIELD_TABLE_FP+=("${EXPTDIR}/${FIELD_TABLE_TMPL_FN}")
+done
+
 FV3_NML_FN="${FV3_NML_BASE_SUITE_FN%.*}"
 FV3_NML_FP="${EXPTDIR}/${FV3_NML_FN}"
 NEMS_CONFIG_FP="${EXPTDIR}/${NEMS_CONFIG_FN}"
@@ -2077,40 +2108,6 @@ NNODES_RUN_FCST=$(( (PE_MEMBER01 + PPN_RUN_FCST - 1)/PPN_RUN_FCST ))
 #
 #-----------------------------------------------------------------------
 #
-# Set the name of the file containing aerosol climatology data that, if
-# necessary, can be used to generate approximate versions of the aerosol 
-# fields needed by Thompson microphysics.  This file will be used to 
-# generate such approximate aerosol fields in the ICs and LBCs if
-# Thompson 
-# MP is included in the physics suite and if the exteranl model for ICs
-# or LBCs does not already provide these fields.  Also, set the full
-# path
-# to this file.
-#
-#-----------------------------------------------------------------------
-#
-THOMPSON_MP_CLIMO_FN="Thompson_MP_MONTHLY_CLIMO.nc"
-THOMPSON_MP_CLIMO_FP="$FIXam/${THOMPSON_MP_CLIMO_FN}"
-#
-#-----------------------------------------------------------------------
-#
-# Call the function that, if the Thompson microphysics parameterization
-# is being called by the physics suite, modifies certain workflow arrays
-# to ensure that fixed files needed by this parameterization are copied
-# to the FIXam directory and appropriate symlinks to them are created in
-# the run directories.  This function also sets the workflow variable
-# THOMPSON_MP_USED that indicates whether Thompson MP is called by the
-# physics suite.
-#
-#-----------------------------------------------------------------------
-#
-set_thompson_mp_fix_files \
-  ccpp_phys_suite_fp="${CCPP_PHYS_SUITE_IN_CCPP_FP}" \
-  thompson_mp_climo_fn="${THOMPSON_MP_CLIMO_FN}" \
-  output_varname_thompson_mp_used="THOMPSON_MP_USED"
-#
-#-----------------------------------------------------------------------
-#
 # Generate the shell script that will appear in the experiment directory
 # (EXPTDIR) and will contain definitions of variables needed by the va-
 # rious scripts in the workflow.  We refer to this as the experiment/
@@ -2438,7 +2435,6 @@ UFS_WTHR_MDL_DIR="${UFS_WTHR_MDL_DIR}"
 UFS_UTILS_DIR="${UFS_UTILS_DIR}"
 SFC_CLIMO_INPUT_DIR="${SFC_CLIMO_INPUT_DIR}"
 TOPO_DIR="${TOPO_DIR}"
-EMC_POST_DIR="${EMC_POST_DIR}"
 
 EXPTDIR="$EXPTDIR"
 LOGDIR="$LOGDIR"
@@ -2469,8 +2465,8 @@ MODEL_CONFIG_TMPL_FN="${MODEL_CONFIG_TMPL_FN}"
 NEMS_CONFIG_TMPL_FN="${NEMS_CONFIG_TMPL_FN}"
 
 DATA_TABLE_TMPL_FP="${DATA_TABLE_TMPL_FP}"
-DIAG_TABLE_TMPL_FP="${DIAG_TABLE_TMPL_FP}"
-FIELD_TABLE_TMPL_FP="${FIELD_TABLE_TMPL_FP}"
+DIAG_TABLE_TMPL_FP=( $( printf "\"%s\" " "${DIAG_TABLE_TMPL_FP[@]}" ))
+FIELD_TABLE_TMPL_FP=( $( printf "\"%s\" " "${FIELD_TABLE_TMPL_FP[@]}" ))
 FV3_NML_BASE_SUITE_FP="${FV3_NML_BASE_SUITE_FP}"
 FV3_NML_YAML_CONFIG_FP="${FV3_NML_YAML_CONFIG_FP}"
 FV3_NML_BASE_ENS_FP="${FV3_NML_BASE_ENS_FP}"
@@ -2478,11 +2474,11 @@ MODEL_CONFIG_TMPL_FP="${MODEL_CONFIG_TMPL_FP}"
 NEMS_CONFIG_TMPL_FP="${NEMS_CONFIG_TMPL_FP}"
 
 CCPP_PHYS_SUITE_FN="${CCPP_PHYS_SUITE_FN}"
-CCPP_PHYS_SUITE_IN_CCPP_FP="${CCPP_PHYS_SUITE_IN_CCPP_FP}"
-CCPP_PHYS_SUITE_FP="${CCPP_PHYS_SUITE_FP}"
+CCPP_PHYS_SUITE_IN_CCPP_FP=( $( printf "\"%s\" " "${CCPP_PHYS_SUITE_IN_CCPP_FP[@]}" ))
+CCPP_PHYS_SUITE_FP=( $( printf "\"%s\" " "${CCPP_PHYS_SUITE_FP[@]}" ))
 
 DATA_TABLE_FP="${DATA_TABLE_FP}"
-FIELD_TABLE_FP="${FIELD_TABLE_FP}"
+FIELD_TABLE_FP=( $( printf "\"%s\" " "${FIELD_TABLE_FP[@]}" ))
 FV3_NML_FN="${FV3_NML_FN}"   # This may not be necessary...
 FV3_NML_FP="${FV3_NML_FP}"
 NEMS_CONFIG_FP="${NEMS_CONFIG_FP}"

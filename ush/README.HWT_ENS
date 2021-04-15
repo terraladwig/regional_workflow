@@ -1,0 +1,57 @@
+
+
+# HWT Ensemble
+
+## Description
+
+The ensemble for the HWT Spring Experiment 2021 is a 9 member forecast
+ensemble run to 60 hours at 00 UTC daily. It is run on the North
+American (NA) 3km domain, and mixes in ICS/LBCS external models and
+pertubations, multiple physics packages, and multiple stochastic physics
+approaches to acheive a more desirable spread in forcasts. The sections
+below provide details of the variations among members.
+
+
+## ICS/LBCS
+The ICS and LBCS come from both the GFS and GEFS using 6 hour forecasts
+from 18 UTC as follows:
+
+  - Members 1-3 have GFS ICS/LBCS
+  - Members 4-6 have GEFS Member 01 ICS/LBCS
+  - Members 7-9 have GEFS Member 02 ICS/LBCS
+
+Below, these sets will be referred to as "sub-ensembles".
+
+## Physics
+
+Each sub-ensemble will run with varying physics in each member. Here is
+an example of the GFS sub-ensemble, and the same pattern applies to
+each sub-ensemble:
+
+  - Member 1: FV3_GFS_v15_thompson_mynn CCPP Suite
+  - Member 2: GFSv16 (without parameterized convection)
+  - Member 3: ???
+
+
+## Stochastic perturbations
+
+Each sub-ensemble will be treated with the same stochastic
+perturbations for all members:
+
+  - Members 1-3: None
+  - Members 4-6: SPPT
+  - Members 7-9: SPPT/SHUM/SKEB
+
+# Configuring the ensemble
+
+The configuration layer doesn't currently handle this type of mixed
+ensemble. Instead there is a manual method to do this work:
+
+1. Configure each sub-ensemble using different RUN and NET variables
+(RRFS_NA_GFS, RRFS_NA_GEFS01, RRFS_NA_GEFS02)
+
+  - Each configuration stage will generate 3 namelists with varying
+  seed values for stochastic physics. 
+2. Turn on each rocotorun job in the crontab.
+
+

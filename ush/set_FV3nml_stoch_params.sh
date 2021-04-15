@@ -83,20 +83,6 @@ function set_FV3nml_stoch_params() {
 #
 #-----------------------------------------------------------------------
 #
-# At this point, there should exist a namelist file with full path as 
-# specified in the workflow variable FV3_NML_FP.  This is the namelist 
-# file for a non-ensmble-enabled experiment.  This file will be used below 
-# as the base namelist file to which we will add the stochastic "seed" 
-# parameters to obtain the final namelist file for each ensemble member.
-# To clarify that this namelist file is not the final namelist file that
-# FV3 will read in, we now rename it to the name specified in FV3_NML_BASE_ENS_FP.
-#
-#-----------------------------------------------------------------------
-#
-mv_vrfy "${FV3_NML_FP}" "${FV3_NML_BASE_ENS_FP}"
-#
-#-----------------------------------------------------------------------
-#
 # Select a cdate (date and hour, in the 10-digit format YYYYMMDDHH) to
 # use in the formula for generating the stochastic seed values below.  
 # Here, we form cdate the starting date and time of the first forecast.
@@ -108,7 +94,8 @@ cdate="${DATE_FIRST_CYCL}${CYCL_HRS[0]}"
 #-----------------------------------------------------------------------
 #
 # Now loop through the ensemble members and generate a namelist file for
-# each one.
+# each one, overwriting the one that was previously written to the expt
+# directory.
 #
 #-----------------------------------------------------------------------
 #
@@ -116,7 +103,8 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
 
   fv3_nml_ensmem_fp="${FV3_NML_ENSMEM_FPS[$i]}"
 
-  ip1=$(( i+1 ))
+  # Setting to 1 here specifically for the HWT Ensemble!
+  ip1=$(( 1 ))
   iseed_shum=$(( cdate*1000 + ip1*10 + 2 ))
   iseed_skeb=$(( cdate*1000 + ip1*10 + 3 ))
   iseed_sppt=$(( cdate*1000 + ip1*10 + 1 ))
@@ -129,7 +117,7 @@ for (( i=0; i<${NUM_ENS_MEMBERS}; i++ )); do
   }"
 
   $USHDIR/set_namelist.py -q \
-                          -n ${FV3_NML_BASE_ENS_FP} \
+                          -n ${fv3_nml_ensmem_fp} \
                           -u "$settings" \
                           -o ${fv3_nml_ensmem_fp} || \
     print_err_msg_exit "\

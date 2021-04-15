@@ -464,237 +464,247 @@ print_info_msg "$VERBOSE" "
 cp_vrfy "${DATA_TABLE_TMPL_FP}" "${DATA_TABLE_FP}"
 
 print_info_msg "$VERBOSE" "
-  Copying the template field table file to the experiment directory..."
-cp_vrfy "${FIELD_TABLE_TMPL_FP}" "${FIELD_TABLE_FP}"
-
-print_info_msg "$VERBOSE" "
   Copying the template NEMS configuration file to the experiment direct-
   ory..."
 cp_vrfy "${NEMS_CONFIG_TMPL_FP}" "${NEMS_CONFIG_FP}"
-#
-# Copy the CCPP physics suite definition file from its location in the
-# clone of the FV3 code repository to the experiment directory (EXPT-
-# DIR).
-#
-print_info_msg "$VERBOSE" "
-Copying the CCPP physics suite definition XML file from its location in
-the forecast model directory sturcture to the experiment directory..."
-cp_vrfy "${CCPP_PHYS_SUITE_IN_CCPP_FP}" "${CCPP_PHYS_SUITE_FP}"
-#
-#-----------------------------------------------------------------------
-#
-# Set parameters in the FV3-LAM namelist file.
-#
-#-----------------------------------------------------------------------
-#
-print_info_msg "$VERBOSE" "
-Setting parameters in FV3 namelist file (FV3_NML_FP):
-  FV3_NML_FP = \"${FV3_NML_FP}\""
-#
-# Set npx and npy, which are just NX plus 1 and NY plus 1, respectively.
-# These need to be set in the FV3-LAM Fortran namelist file.  They represent
-# the number of cell vertices in the x and y directions on the regional
-# grid.
-#
-npx=$((NX+1))
-npy=$((NY+1))
-#
-# For the physics suites that use RUC-LSM, set the parameter
-# lsoil according to the external models used to obtain ICs and LBCs.
-#
-if [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_v0" ] || \
-   [ "${CCPP_PHYS_SUITE}" = "FV3_GSD_SAR" ]; then
 
-  if [ "${EXTRN_MDL_NAME_ICS}" = "NAM" ] || \
-     [ "${EXTRN_MDL_NAME_ICS}" = "GSMGFS" ] || \
-     [ "${EXTRN_MDL_NAME_ICS}" = "GEFS" ] || \
-     [ "${EXTRN_MDL_NAME_ICS}" = "FV3GFS" ]; then
-    lsoil=4
-  elif [ "${EXTRN_MDL_NAME_ICS}" = "RAP" ] || \
-       [ "${EXTRN_MDL_NAME_ICS}" = "HRRR" ]; then
-    lsoil=9
-  else
-    print_err_msg_exit "\
-The value to set the variable lsoil to in the FV3 namelist file (FV3_NML_FP)
-has not been specified for the following combination of physics suite and
-external model for ICs:
-  CCPP_PHYS_SUITE = \"${CCPP_PHYS_SUITE}\"
-  EXTRN_MDL_NAME_ICS = \"${EXTRN_MDL_NAME_ICS}\"
-Please change one or more of these parameters or provide a value for lsoil
-(and change workflow generation script(s) accordingly) and rerun."
-  fi
+for (( suite=0; suite<${#SUITES[@]}; suite++ )); do
 
-fi
-#
-# Create a multiline variable that consists of a yaml-compliant string
-# specifying the values that the namelist variables that are physics-
-# suite-independent need to be set to.  Below, this variable will be
-# passed to a python script that will in turn set the values of these
-# variables in the namelist file.
-#
-settings="\
-'atmos_model_nml': {
-    'blocksize': $BLOCKSIZE,
-    'ccpp_suite': ${CCPP_PHYS_SUITE},
-  }
-'fv_core_nml': {
-    'target_lon': ${LON_CTR},
-    'target_lat': ${LAT_CTR},
-    'nrows_blend': ${HALO_BLEND},
-#
-# Question:
-# For a ESGgrid type grid, what should stretch_fac be set to?  This depends
-# on how the FV3 code uses the stretch_fac parameter in the namelist file.
-# Recall that for a ESGgrid, it gets set in the function set_gridparams_ESGgrid(.sh)
-# to something like 0.9999, but is it ok to set it to that here in the
-# FV3 namelist file?
-#
-    'stretch_fac': ${STRETCH_FAC},
-    'npx': $npx,
-    'npy': $npy,
-    'layout': [${LAYOUT_X}, ${LAYOUT_Y}],
-    'bc_update_interval': ${LBC_SPEC_INTVL_HRS},
-  }
-'gfs_physics_nml': {
-    'lsoil': ${lsoil:-null},
-    'do_shum': ${DO_SHUM},
-    'do_sppt': ${DO_SPPT},
-    'do_skeb': ${DO_SKEB},
-  }
-'nam_stochy': {
-    'shum': ${SHUM_MAG},
-    'shum_lscale': ${SHUM_LSCALE},
-    'shum_tau': ${SHUM_TSCALE},
-    'shumint': ${SHUM_INT},
-    'sppt': ${SPPT_MAG},
-    'sppt_lscale': ${SPPT_LSCALE},
-    'sppt_tau': ${SPPT_TSCALE},
-    'spptint': ${SPPT_INT},
-    'skeb': ${SKEB_MAG},
-    'skeb_lscale': ${SKEB_LSCALE},
-    'skeb_tau': ${SKEB_TSCALE},
-    'skebint': ${SKEB_INT},
-    'skeb_vdof': ${SKEB_VDOF},
-    'use_zmtnblck': ${USE_ZMTNBLCK},
-  }"
-#
-# Add to "settings" the values of those namelist variables that specify
-# the paths to fixed files in the FIXam directory.  As above, these namelist
-# variables are physcs-suite-independent.
-#
-# Note that the array FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING contains
-# the mapping between the namelist variables and the names of the files
-# in the FIXam directory.  Here, we loop through this array and process
-# each element to construct each line of "settings".
-#
-settings="$settings
-'namsfc': {"
+  print_info_msg "$VERBOSE" "
+    Copying the template field table file to the experiment directory..."
+  cp_vrfy "${FIELD_TABLE_TMPL_FP[$suite]}" "${FIELD_TABLE_FP[$suite]}"
 
-dummy_run_dir="$EXPTDIR/any_cyc"
-if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
-  dummy_run_dir="${dummy_run_dir}/any_ensmem"
-fi
-
-regex_search="^[ ]*([^| ]+)[ ]*[|][ ]*([^| ]+)[ ]*$"
-num_nml_vars=${#FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING[@]}
-for (( i=0; i<${num_nml_vars}; i++ )); do
-
-  mapping="${FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING[$i]}"
-  nml_var_name=$( printf "%s\n" "$mapping" | \
-                  $SED -n -r -e "s/${regex_search}/\1/p" )
-  FIXam_fn=$( printf "%s\n" "$mapping" |
-              $SED -n -r -e "s/${regex_search}/\2/p" )
-
-  fp="\"\""
-  if [ ! -z "${FIXam_fn}" ]; then
-    fp="$FIXam/${FIXam_fn}"
-#
-# If not in NCO mode, for portability and brevity, change fp so that it
-# is a relative path (relative to any cycle directory immediately under
-# the experiment directory).
-#
-    if [ "${RUN_ENVIR}" != "nco" ]; then
-      fp=$( realpath --canonicalize-missing --relative-to="${dummy_run_dir}" "$fp" )
+  #
+  # Copy the CCPP physics suite definition file from its location in the
+  # clone of the FV3 code repository to the experiment directory (EXPT-
+  # DIR).
+  #
+  print_info_msg "$VERBOSE" "
+  Copying the CCPP physics suite definition XML file from its location in
+  the forecast model directory sturcture to the experiment directory..."
+  cp_vrfy "${CCPP_PHYS_SUITE_IN_CCPP_FP[$suite]}" \
+    "${CCPP_PHYS_SUITE_FP[$suite]}"
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Set parameters in the FV3-LAM namelist file.
+  #
+  #-----------------------------------------------------------------------
+  #
+  print_info_msg "$VERBOSE" "
+  Setting parameters in FV3 namelist file (FV3_NML_FP):
+    FV3_NML_FP = \"${FV3_NML_FP}\""
+  #
+  # Set npx and npy, which are just NX plus 1 and NY plus 1, respectively.
+  # These need to be set in the FV3-LAM Fortran namelist file.  They represent
+  # the number of cell vertices in the x and y directions on the regional
+  # grid.
+  #
+  npx=$((NX+1))
+  npy=$((NY+1))
+  #
+  # For the physics suites that use RUC-LSM, set the parameter
+  # lsoil according to the external models used to obtain ICs and LBCs.
+  #
+  if [ "${SUITES[$suite]}" = "FV3_GSD_v0" ] || \
+     [ "${SUITES[$suite]}" = "FV3_GSD_SAR" ]; then
+  
+    if [ "${EXTRN_MDL_NAME_ICS}" = "NAM" ] || \
+       [ "${EXTRN_MDL_NAME_ICS}" = "GSMGFS" ] || \
+       [ "${EXTRN_MDL_NAME_ICS}" = "GEFS" ] || \
+       [ "${EXTRN_MDL_NAME_ICS}" = "FV3GFS" ]; then
+      lsoil=4
+    elif [ "${EXTRN_MDL_NAME_ICS}" = "RAP" ] || \
+         [ "${EXTRN_MDL_NAME_ICS}" = "HRRR" ]; then
+      lsoil=9
+    else
+      print_err_msg_exit "\
+  The value to set the variable lsoil to in the FV3 namelist file (FV3_NML_FP)
+  has not been specified for the following combination of physics suite and
+  external model for ICs:
+    CCPP_PHYS_SUITE = \"${SUITES[$suite]}\"
+    EXTRN_MDL_NAME_ICS = \"${EXTRN_MDL_NAME_ICS}\"
+  Please change one or more of these parameters or provide a value for lsoil
+  (and change workflow generation script(s) accordingly) and rerun."
     fi
+
   fi
-#
-# Add a line to the variable "settings" that specifies (in a yaml-compliant
-# format) the name of the current namelist variable and the value it should
-# be set to.
-#
+  #
+  # Create a multiline variable that consists of a yaml-compliant string
+  # specifying the values that the namelist variables that are physics-
+  # suite-independent need to be set to.  Below, this variable will be
+  # passed to a python script that will in turn set the values of these
+  # variables in the namelist file.
+  #
+  settings="\
+  'atmos_model_nml': {
+      'blocksize': $BLOCKSIZE,
+      'ccpp_suite': ${SUITES[$suite]},
+    }
+  'fv_core_nml': {
+      'target_lon': ${LON_CTR},
+      'target_lat': ${LAT_CTR},
+      'nrows_blend': ${HALO_BLEND},
+  #
+  # Question:
+  # For a ESGgrid type grid, what should stretch_fac be set to?  This depends
+  # on how the FV3 code uses the stretch_fac parameter in the namelist file.
+  # Recall that for a ESGgrid, it gets set in the function set_gridparams_ESGgrid(.sh)
+  # to something like 0.9999, but is it ok to set it to that here in the
+  # FV3 namelist file?
+  #
+      'stretch_fac': ${STRETCH_FAC},
+      'npx': $npx,
+      'npy': $npy,
+      'layout': [${LAYOUT_X}, ${LAYOUT_Y}],
+      'bc_update_interval': ${LBC_SPEC_INTVL_HRS},
+    }
+  'gfs_physics_nml': {
+      'lsoil': ${lsoil:-null},
+      'do_shum': ${DO_SHUM},
+      'do_sppt': ${DO_SPPT},
+      'do_skeb': ${DO_SKEB},
+    }
+  'nam_stochy': {
+      'shum': ${SHUM_MAG},
+      'shum_lscale': ${SHUM_LSCALE},
+      'shum_tau': ${SHUM_TSCALE},
+      'shumint': ${SHUM_INT},
+      'sppt': ${SPPT_MAG},
+      'sppt_lscale': ${SPPT_LSCALE},
+      'sppt_tau': ${SPPT_TSCALE},
+      'spptint': ${SPPT_INT},
+      'skeb': ${SKEB_MAG},
+      'skeb_lscale': ${SKEB_LSCALE},
+      'skeb_tau': ${SKEB_TSCALE},
+      'skebint': ${SKEB_INT},
+      'skeb_vdof': ${SKEB_VDOF},
+      'use_zmtnblck': ${USE_ZMTNBLCK},
+    }"
+  #
+  # Add to "settings" the values of those namelist variables that specify
+  # the paths to fixed files in the FIXam directory.  As above, these namelist
+  # variables are physcs-suite-independent.
+  #
+  # Note that the array FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING contains
+  # the mapping between the namelist variables and the names of the files
+  # in the FIXam directory.  Here, we loop through this array and process
+  # each element to construct each line of "settings".
+  #
   settings="$settings
-    '${nml_var_name}': $fp,"
+  'namsfc': {"
+  
+  dummy_run_dir="$EXPTDIR/any_cyc"
+  if [ "${DO_ENSEMBLE}" = "TRUE" ]; then
+    dummy_run_dir="${dummy_run_dir}/any_ensmem"
+  fi
+  
+  regex_search="^[ ]*([^| ]+)[ ]*[|][ ]*([^| ]+)[ ]*$"
+  num_nml_vars=${#FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING[@]}
+  for (( i=0; i<${num_nml_vars}; i++ )); do
+  
+    mapping="${FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING[$i]}"
+    nml_var_name=$( printf "%s\n" "$mapping" | \
+                    $SED -n -r -e "s/${regex_search}/\1/p" )
+    FIXam_fn=$( printf "%s\n" "$mapping" |
+                $SED -n -r -e "s/${regex_search}/\2/p" )
+  
+    fp="\"\""
+    if [ ! -z "${FIXam_fn}" ]; then
+      fp="$FIXam/${FIXam_fn}"
+  #
+  # If not in NCO mode, for portability and brevity, change fp so that it
+  # is a relative path (relative to any cycle directory immediately under
+  # the experiment directory).
+  #
+      if [ "${RUN_ENVIR}" != "nco" ]; then
+        fp=$( realpath --canonicalize-missing --relative-to="${dummy_run_dir}" "$fp" )
+      fi
+    fi
+  #
+  # Add a line to the variable "settings" that specifies (in a yaml-compliant
+  # format) the name of the current namelist variable and the value it should
+  # be set to.
+  #
+    settings="$settings
+      '${nml_var_name}': $fp,"
+  
+  done
+  #
+  # Add the closing curly bracket to "settings".
+  #
+  settings="$settings
+    }"
+  
+  print_info_msg $VERBOSE "
+  The variable \"settings\" specifying values of the namelist variables
+  has been set as follows:
+  
+  settings =
+  $settings"
+  #
+  #-----------------------------------------------------------------------
+  #
+  # Call the set_namelist.py script to create a new FV3 namelist file (full
+  # path specified by FV3_NML_FP) using the file FV3_NML_BASE_SUITE_FP as
+  # the base (i.e. starting) namelist file, with physics-suite-dependent
+  # modifications to the base file specified in the yaml configuration file
+  # FV3_NML_YAML_CONFIG_FP (for the physics suite specified by CCPP_PHYS_SUITE),
+  # and with additional physics-suite-independent modificaitons specified
+  # in the variable "settings" set above.
+  #
+  #-----------------------------------------------------------------------
+  #
+  $USHDIR/set_namelist.py -q \
+                          -n ${FV3_NML_BASE_SUITE_FP} \
+                          -c ${FV3_NML_YAML_CONFIG_FP} ${SUITES[$suite]} \
+                          -u "$settings" \
+                          -o ${FV3_NML_ENSMEM_FPS[$suite]} || \
+    print_err_msg_exit "\
+  Call to python script set_namelist.py to generate an FV3 namelist file
+  failed.  Parameters passed to this script are:
+    Full path to base namelist file:
+      FV3_NML_BASE_SUITE_FP = \"${FV3_NML_BASE_SUITE_FP}\"
+    Full path to yaml configuration file for various physics suites:
+      FV3_NML_YAML_CONFIG_FP = \"${FV3_NML_YAML_CONFIG_FP}\"
+    Physics suite to extract from yaml configuration file:
+      CCPP_PHYS_SUITE = \"${SUITES[$suite]}\"
+    Full path to output namelist file:
+      FV3_NML_FP = \"${FV3_NML_FP}\"
+    Namelist settings specified on command line:
+      settings =
+  $settings"
 
-done
-#
-# Add the closing curly bracket to "settings".
-#
-settings="$settings
-  }"
+  #
+  # If not running the MAKE_GRID_TN task (which implies the workflow will
+  # use pregenerated grid files), set the namelist variables specifying
+  # the paths to surface climatology files.  These files are located in
+  # (or have symlinks that point to them) in the FIXLAM directory.
+  #
+  # Note that if running the MAKE_GRID_TN task, this action usually cannot
+  # be performed here but must be performed in that task because the names
+  # of the surface climatology files depend on the CRES parameter (which is
+  # the C-resolution of the grid), and this parameter is in most workflow
+  # configurations is not known until the grid is created.
+  #
+  if [ "${RUN_TASK_MAKE_GRID}" = "FALSE" ]; then
 
-print_info_msg $VERBOSE "
-The variable \"settings\" specifying values of the namelist variables
-has been set as follows:
+    set_FV3nml_sfc_climo_filenames mem_num=$suite || print_err_msg_exit "\
+  Call to function to set surface climatology file names in the FV3 namelist
+  file failed."
 
-settings =
-$settings"
-#
-#-----------------------------------------------------------------------
-#
-# Call the set_namelist.py script to create a new FV3 namelist file (full
-# path specified by FV3_NML_FP) using the file FV3_NML_BASE_SUITE_FP as
-# the base (i.e. starting) namelist file, with physics-suite-dependent
-# modifications to the base file specified in the yaml configuration file
-# FV3_NML_YAML_CONFIG_FP (for the physics suite specified by CCPP_PHYS_SUITE),
-# and with additional physics-suite-independent modificaitons specified
-# in the variable "settings" set above.
-#
-#-----------------------------------------------------------------------
-#
-$USHDIR/set_namelist.py -q \
-                        -n ${FV3_NML_BASE_SUITE_FP} \
-                        -c ${FV3_NML_YAML_CONFIG_FP} ${CCPP_PHYS_SUITE} \
-                        -u "$settings" \
-                        -o ${FV3_NML_FP} || \
-  print_err_msg_exit "\
-Call to python script set_namelist.py to generate an FV3 namelist file
-failed.  Parameters passed to this script are:
-  Full path to base namelist file:
-    FV3_NML_BASE_SUITE_FP = \"${FV3_NML_BASE_SUITE_FP}\"
-  Full path to yaml configuration file for various physics suites:
-    FV3_NML_YAML_CONFIG_FP = \"${FV3_NML_YAML_CONFIG_FP}\"
-  Physics suite to extract from yaml configuration file:
-    CCPP_PHYS_SUITE = \"${CCPP_PHYS_SUITE}\"
-  Full path to output namelist file:
-    FV3_NML_FP = \"${FV3_NML_FP}\"
-  Namelist settings specified on command line:
-    settings =
-$settings"
-#
-# If not running the MAKE_GRID_TN task (which implies the workflow will
-# use pregenerated grid files), set the namelist variables specifying
-# the paths to surface climatology files.  These files are located in
-# (or have symlinks that point to them) in the FIXLAM directory.
-#
-# Note that if running the MAKE_GRID_TN task, this action usually cannot
-# be performed here but must be performed in that task because the names
-# of the surface climatology files depend on the CRES parameter (which is
-# the C-resolution of the grid), and this parameter is in most workflow
-# configurations is not known until the grid is created.
-#
-if [ "${RUN_TASK_MAKE_GRID}" = "FALSE" ]; then
+  fi
 
-  set_FV3nml_sfc_climo_filenames || print_err_msg_exit "\
-Call to function to set surface climatology file names in the FV3 namelist
-file failed."
+done # Namelist generation loop over physics suites
 
-  if [ "${DO_ENSEMBLE}" = TRUE ]; then
-    set_FV3nml_stoch_params || print_err_msg_exit "\
+
+if [ "${DO_ENSEMBLE}" = TRUE ]; then
+  set_FV3nml_stoch_params || print_err_msg_exit "\
 Call to function to set stochastic parameters in the FV3 namelist files
 for the various ensemble members failed."
-  fi
 
 fi
+
 #
 #-----------------------------------------------------------------------
 #

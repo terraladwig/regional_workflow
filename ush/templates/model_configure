@@ -20,6 +20,8 @@ debug_affinity:          .true.
 restart_interval:        0
 output_1st_tstep_rst:    .false.
 print_esmf:              {{ print_esmf }}
+write_dopost:            .true.
+output_history:          .false.
 quilting:                {{ quilting }}
 
 {% if quilting  %}
@@ -49,9 +51,9 @@ write_fsyncflag:         .false.
 # Output frequency in time steps (positive values override "nfhout" and 
 # "nfhout_hf").
 #
-nfhout:     1
-nfhmax_hf:  60
-nfhout_hf:  1
+nfhout:     12
+nfhmax_hf:  12
+nfhout_hf:  12
 nsout:      -1
 #
 # Coordinate system used by the output grid.
