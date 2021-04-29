@@ -442,6 +442,8 @@ EXTRN_MDL_NAME_LBCS="FV3GFS"
 LBC_SPEC_INTVL_HRS="6"
 FV3GFS_FILE_FMT_ICS="nemsio"
 FV3GFS_FILE_FMT_LBCS="nemsio"
+EXTRN_MDL_ICS_OFFSET_HRS=""
+EXTRN_MDL_LBCS_OFFSET_HRS=""
 #
 #-----------------------------------------------------------------------
 #
@@ -1300,7 +1302,7 @@ WTIME_GET_EXTRN_LBCS="00:45:00"
 WTIME_MAKE_ICS="00:30:00"
 WTIME_MAKE_LBCS="00:30:00"
 WTIME_RUN_FCST="04:30:00"
-WTIME_RUN_POST="00:15:00"
+WTIME_RUN_POST="00:35:00"
 #
 # Maximum number of attempts.
 #
@@ -1314,6 +1316,25 @@ MAXTRIES_MAKE_LBCS="1"
 MAXTRIES_RUN_FCST="1"
 MAXTRIES_RUN_POST="1"
 MAXTRIES_ANAL_GSI="1"
+#
+#
+#-----------------------------------------------------------------------
+#
+# Set additional output grids for wgrib2 remapping, if any 
+# Space-separated list of strings, e.g., ( "130" "242" "clue" )
+# Default is no additional grids
+#
+# Current options as of 23 Apr 2021:
+#  "130"   (CONUS 13.5 km)
+#  "200"   (Puerto Rico 16 km)
+#  "221"   (North America 32 km)
+#  "242"   (Alaska 11.25 km)
+#  "243"   (Pacific 0.4-deg)
+#  "clue"  (NSSL/SPC 3-km CLUE grid for 2020/2021)
+#  "hrrr"  (HRRR 3-km CONUS grid)
+#  "hrrre" (HRRRE 3-km CONUS grid)
+#
+ADDNL_OUTPUT_GRIDS=( )
 #
 #-----------------------------------------------------------------------
 #

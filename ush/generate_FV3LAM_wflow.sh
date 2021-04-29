@@ -181,6 +181,11 @@ if [[ ${RUN_REALTIME} == "TRUE" ]]; then
   PARTITION_FCST=${PARTITION_FCST_RES}
 fi
 
+#
+# get the last hour of the LBC files
+#
+EXT_FCST_LEN_HRS=$(( ${FCST_LEN_HRS}+${EXTRN_MDL_LBCS_OFFSET_HRS} ))
+
 settings="\
 #
 # Parameters needed by the job scheduler.
@@ -319,6 +324,11 @@ settings="\
 # Forecast length (same for all cycles).
 #
   'fcst_len_hrs': ${FCST_LEN_HRS}
+  'ext_fcst_len_hrs': ${EXT_FCST_LEN_HRS}
+#
+# LBCs interval
+#
+  'lbc_spec_intvl_hrs': ${LBC_SPEC_INTVL_HRS}
 #
 # Ensemble-related parameters.
 #
