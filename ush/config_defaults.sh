@@ -1593,6 +1593,15 @@ DO_RETRO="FALSE"
 #
 #-----------------------------------------------------------------------
 #
+# Set parameters associated with running BUFR sounding generation.  Definitions:
+#
+# DO_BUFR_SOUNDING:
+# Flag turn on BUFR sounding generation.
+#
+DO_BUFR_SOUNDING="FALSE"
+#
+#-----------------------------------------------------------------------
+#
 # Set default stochastic physics options
 # For detailed documentation of these parameters, see:
 # https://stochastic-physics.readthedocs.io/en/ufs_public_release/namelist_options.html

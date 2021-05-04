@@ -2,7 +2,8 @@
 MACHINE="jet"
 ACCOUNT="nrtrr"
 RESERVATION="3drtma"
-EXPT_BASEDIR="/home/rtrr/RTMA"
+#EXPT_BASEDIR="/home/rtrr/RTMA"
+EXPT_BASEDIR="/mnt/lfs1/BMC/rtwbl/terra/RRFS-RTMA-test"
 EXPT_SUBDIR="RTMA_dev1"
 
 if [[ -n $RESERVATION ]] ; then
@@ -113,8 +114,8 @@ fi
 
 WTIME_RUN_FCST="00:05:00" #normally 2 minutes is enough to generate dynf000.nc and phyf000.nc
 
-DATE_FIRST_CYCL="20210401"
-DATE_LAST_CYCL="20211231"
+DATE_FIRST_CYCL="20210504"
+DATE_LAST_CYCL="20210510"
 CYCL_HRS=( "00" "12" ) #not used anymore
 
 EXTRN_MDL_NAME_ICS="HRRR"
@@ -123,14 +124,14 @@ EXTRN_MDL_NAME_LBCS="RAP"
 envir="para"
 
 NET="RTMA" ##product name prefix: ${NET}.t${cyc}z.bgdawpf${fhr}.${tmmark}.grib2
-TAG="RTMA_dev1" ## used by job names
+TAG="RTMA_dev1test" ## used by job names
 IS_RTMA="TRUE"
 NCORES_PER_NODE=40 #kjet
 FG_ROOTDIR="/lfs4/BMC/nrtrr/NCO_dirs/stmp/tmpnwprd/RRFS_dev1" #only needed by RTMA
 
 USE_CUSTOM_POST_CONFIG_FILE="TRUE"
 CUSTOM_POST_CONFIG_FP="/mnt/lfs4/BMC/nrtrr/RTMA/RTMA-dev1-ufs-srweather-app/src/EMC_post/parm/postxconfig-NT-fv3lam_rrfs.txt"
-ARCHIVEDIR="/5year/BMC/wrfruc/rtma_dev1"
+ARCHIVEDIR="/5year/BMC/wrfruc/terra-test"
 NCARG_ROOT="/apps/ncl/6.5.0-CentOS6.10_64bit_nodap_gnu447"
 NCL_HOME="/home/rtrr/RTMA/graphics"
 NCL_REGION="conus"
@@ -148,8 +149,12 @@ MODEL="RTMA_dev1" #used by NCL
 RUN="RTMA_dev1"
 COMINgfs=""
 
-STMP="/lfs4/BMC/nrtrr/NCO_dirs/stmp"  # Path to directory STMP that mostly contains input files.
-PTMP="/lfs4/BMC/nrtrr/NCO_dirs/ptmp"  # Path to directory STMP that mostly contains input files.
+#STMP="/lfs4/BMC/nrtrr/NCO_dirs/stmp"  # Path to directory STMP that mostly contains input files.
+#PTMP="/lfs4/BMC/nrtrr/NCO_dirs/ptmp"  # Path to directory STMP that mostly contains input files.
+
+STMP="/mnt/lfs1/BMC/rtwbl/terra/NCO_dirs/stmp"
+PTMP="/mnt/lfs1/BMC/rtwbl/terra/NCO_dirs/ptmp"
+
 
 #
 # In NCO mode, the user must manually (e.g. after doing the build step)
