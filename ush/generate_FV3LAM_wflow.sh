@@ -198,6 +198,7 @@ settings="\
   'process_bufr': ${PROCESS_BUFR_TN}
   'radar_refl2tten': ${RADAR_REFL2TTEN_TN}
   'cldanl_nonvar': ${CLDANL_NONVAR_TN}
+  'run_bufr_tn': ${RUN_BUFR_TN}
   'tag': ${TAG}
 #
 # Number of nodes to use for each task.
@@ -218,6 +219,7 @@ settings="\
   'nnodes_proc_bufr': ${NNODES_PROC_BUFR}
   'nnodes_run_ref2tten': ${NNODES_RUN_REF2TTEN}
   'nnodes_run_nonvarcldanl': ${NNODES_RUN_NONVARCLDANL}
+  'nnodes_run_bufrsounding': ${NNODES_RUN_BUFRSOUNDING}
 #
 # Number of cores used for a task
 #
@@ -245,6 +247,7 @@ settings="\
   'ppn_proc_bufr': ${PPN_PROC_BUFR}
   'ppn_run_ref2tten': ${PPN_RUN_REF2TTEN}
   'ppn_run_nonvarcldanl': ${PPN_RUN_NONVARCLDANL}
+  'ppn_run_bufrsounding': ${PPN_RUN_BUFRSOUNDING}
 #
 # Maximum wallclock time for each task.
 #
@@ -264,6 +267,7 @@ settings="\
   'wtime_proc_bufr': ${WTIME_PROC_BUFR}
   'wtime_run_ref2tten': ${WTIME_RUN_REF2TTEN}
   'wtime_run_nonvarcldanl': ${WTIME_RUN_NONVARCLDANL}
+  'wtime_run_bufrsounding': ${WTIME_RUN_BUFRSOUNDING}
 #
 # Maximum memory for each task.
 #
@@ -288,6 +292,7 @@ settings="\
   'maxtries_process_bufr': ${MAXTRIES_PROCESS_BUFR}
   'maxtries_radar_ref2tten': ${MAXTRIES_RADAR_REF2TTEN}
   'maxtries_cldanl_nonvar': ${MAXTRIES_CLDANL_NONVAR}
+  'maxtries_bufr_sounding': ${MAXTRIES_BUFR_SOUNDING}
 #
 # Flags that specify whether to run the preprocessing tasks.
 #
@@ -366,6 +371,10 @@ settings="\
 #  retrospective experiments
 #
   'do_retro': ${DO_RETRO}
+#
+#  bufr soundings
+#
+  'do_bufr_sounding': ${DO_BUFR_SOUNDING}
 " # End of "settings" variable.
 
 print_info_msg $VERBOSE "

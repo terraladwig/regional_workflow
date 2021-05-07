@@ -337,10 +337,12 @@ of the current run directory (run_dir), where
 
 BKTYPE=1    # cold start using INPUT
 if [ -r ${CYCLE_DIR}/fcst_fv3lam/INPUT/fv_tracer.res.tile1.nc ]; then
+  #if [ ${DO_DACYCLE} ]; then
   BKTYPE=0  # cycling using RESTART
+  #fi
 fi
 print_info_msg "$VERBOSE" "
-The forecast has BKTYPE $BKTYPE (1:cold start ; 0 cycling)"
+The forecast has BKTYPE $BKTYPE (1:cold start ; 0 cycling). ${DO_DACYCLE}"
 
 cd_vrfy ${run_dir}/INPUT
 #ln_vrfy -sf gfs_data.tile${TILE_RGNL}.halo${NH0}.nc gfs_data.nc
