@@ -99,7 +99,7 @@ tmmark="tm${hh}"
 #
 BUFREXEC=${EXECDIR}/regional_bufr.x
 # This fix files is designed for GSL RRFS output grid in real-time runs as of April 2021.
-cp_vrfy ${FIXsar}/conusfv3sar_lambert_profdat_rrfs_1746x1014_nstat1850 hiresw_profdat
+cp_vrfy ${FIXSAR}/conusfv3sar_lambert_profdat_rrfs_1746x1014_nstat1850 hiresw_profdat
 
 OUTTYP=netcdf
 
@@ -206,8 +206,8 @@ done
 
 SNDPEXEC=${EXECDIR}/regional_sndp.x
 
-cp_vrfy ${FIXsar}/hiresw_sndp.parm.mono ${DATADIR}/hiresw_sndp.parm.mono
-cp_vrfy ${FIXsar}/hiresw_bufr.tbl ${DATADIR}/hiresw_bufr.tbl
+cp_vrfy ${FIXSAR}/hiresw_sndp.parm.mono ${DATADIR}/hiresw_sndp.parm.mono
+cp_vrfy ${FIXSAR}/hiresw_bufr.tbl ${DATADIR}/hiresw_bufr.tbl
 
 rm fort.11
 rm itag
@@ -258,7 +258,7 @@ tar -cf - . | /usr/bin/gzip > ../${RUN}.t${cyc}z.bufrsnd.tar.gz
 
 
 #copy final file to com
-cp_vrfy ../${RUN}.t${cyc}z.bufrsnd.tar.gz ${comout}/${RUN}.t${cyc}z.bufrsnd.tar.gz
+cp_vrfy ../${RUN}.t${cyc}z.bufrsnd.tar.gz ${COMOUT}/${RUN}.t${cyc}z.bufrsnd.tar.gz
 
 #
 #-----------------------------------------------------------------------

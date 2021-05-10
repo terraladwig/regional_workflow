@@ -73,6 +73,8 @@ fi
 mkdir_vrfy -p $DATADIR
 cd_vrfy $DATADIR
 
+FIXSAR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_sar/conus
+
 if [ "${RUN_ENVIR}" = "nco" ]; then
   COMOUT="${COMOUT_BASEDIR}/$RUN.$PDY/$CYC${SLASH_ENSMEM_SUBDIR}"
   mkdir_vrfy -p "${COMOUT}"
@@ -86,10 +88,10 @@ fi
 #
 #-----------------------------------------------------------------------
 #
-${SCRIPTSDIR}/exregional_bufr.sh \
+${SCRIPTSDIR}/exregional_bufr_sounding.sh \
   EXECDIR="${EXECDIR}" \
   DATADIR="${DATADIR}"  \
-  FIXSAR="${FIXsar}"  \
+  FIXSAR="${FIXSAR}"  \
   COMOUT="${COMOUT}" || \
 print_err_msg_exit "\
 Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
