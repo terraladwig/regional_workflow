@@ -983,10 +983,7 @@ MODULES_RUN_TASK_FP script.
     <envar><name>CYC</name><value><cyclestr>@H</cyclestr></value></envar>
 
     <dependency>
-      <and>
-        <datadep age="05:00"><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H/fcst_fv3lam/dynf#fhr#.nc</cyclestr></datadep>
-        <datadep age="05:00"><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H/fcst_fv3lam/phyf#fhr#.nc</cyclestr></datadep>
-      </and>
+      <taskdep task="&RUN_FCST_TN;"/>
     </dependency>
 
   </task>

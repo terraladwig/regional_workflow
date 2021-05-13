@@ -113,11 +113,12 @@ POST_HH=${POST_TIME:8:2}
 
 STARTDATE=${POST_YYYY}-${POST_MM}-${POST_DD}_${POST_HH}:00:00
 
-FHRLIM=0
+FHRLIM=${FCST_LEN_HRS}
 INCR=01
 NFILE=1
 forecast_hour=00
 
+echo "Generate BUFR soundings for $FHRLIM"
 while [ $forecast_hour -le $FHRLIM ]
 do
 
