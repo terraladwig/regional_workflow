@@ -127,7 +127,30 @@ fhrstr=$(printf "%03d" ${forecast_hour#0})
 dyn_file="${CYCLE_DIR}/fcst_fv3lam/dynf0${forecast_hour}.nc"
 phy_file="${CYCLE_DIR}/fcst_fv3lam/phyf0${forecast_hour}.nc"
 
-# check for existence of sndpostdone files
+icnt=1
+
+# wait for model restart file
+while [ $icnt -lt 20 ]
+do
+   if [ -s ${dyn_file} ]
+   then
+      break
+   else
+      icnt=$((icnt + 1))
+      sleep 120
+   fi
+if [ $icnt -ge 11 ]
+then
+    icnt=99
+    echo "WARNING: Skip to sounding processing after 20 minutes of waiting for FV3 FCST F${forecast_hour} to end. ${dyn_file}"
+    break
+fi
+done
+
+if [ $icnt -ge 99 ]
+then
+  FHRLIM=$forecast_hour 
+else
 
 echo $DATADIR
 cd ${DATADIR}
@@ -173,6 +196,7 @@ then
 forecast_hour=0$forecast_hour
 fi
 
+fi
 done
 
 forecast_hour=00

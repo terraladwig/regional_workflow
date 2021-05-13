@@ -983,7 +983,7 @@ MODULES_RUN_TASK_FP script.
     <envar><name>CYC</name><value><cyclestr>@H</cyclestr></value></envar>
 
     <dependency>
-      <taskdep task="&RUN_FCST_TN;"/>
+      <taskdep task="&RUN_POST_TN;_f000"/>
     </dependency>
 
   </task>
