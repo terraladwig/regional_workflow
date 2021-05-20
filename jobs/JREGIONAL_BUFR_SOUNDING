@@ -76,7 +76,7 @@ cd_vrfy $DATADIR
 FIXSAR=/mnt/lfs4/BMC/nrtrr/RRFS/fix/fix_sar/conus
 
 if [ "${RUN_ENVIR}" = "nco" ]; then
-  COMOUT="${COMOUT_BASEDIR}/$RUN.$PDY/$CYC${SLASH_ENSMEM_SUBDIR}"
+  COMOUT="${COMOUT_BASEDIR}/$RUN.$PDY/$CYC"
   mkdir_vrfy -p "${COMOUT}"
 fi
 
