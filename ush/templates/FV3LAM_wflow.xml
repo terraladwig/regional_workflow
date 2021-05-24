@@ -735,7 +735,9 @@ MODULES_RUN_TASK_FP script.
   <task name="&ANAL_GSI_INPUT_TN;" cycledefs="forecast_00z,forecast_12z" maxtries="{{ maxtries_anal_gsi }}">
 
      &RSRV_DEFAULT;
+{%- if run_realtime %}
      &WALL_LIMIT_ANAL;  
+{%- endif %}
 
      <command>&LOAD_MODULES_RUN_TASK_FP; "&RUN_ANAL_TN;" "&JOBSDIR;/JREGIONAL_RUN_ANAL"</command>
      <cores>240</cores>
@@ -773,7 +775,9 @@ MODULES_RUN_TASK_FP script.
    <task name="&ANAL_GSI_RESTART_TN;_f#fhr#" cycledefs="forecast_00z,forecast_12z" maxtries="{{ maxtries_anal_gsi }}">
 
      &RSRV_DEFAULT;
-     &WALL_LIMIT_ANAL; 
+{%- if run_realtime %}
+     &WALL_LIMIT_ANAL;  
+{%- endif %}
 
      <command>&LOAD_MODULES_RUN_TASK_FP; "&RUN_ANAL_TN;" "&JOBSDIR;/JREGIONAL_RUN_ANAL"</command>
      <cores>240</cores>

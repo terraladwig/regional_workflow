@@ -130,25 +130,25 @@ where the arguments are defined as follows:
 #-----------------------------------------------------------------------
 #
     "upgrade")
-       if [[ "${dir_or_file}" == "${EXPTDIR}" ]]; then
-         local i=1
-         local old_indx=$( printf "%03d" "$i" )
-         local old_dir_or_file="${dir_or_file}/old${old_indx}"
-         while [ -d "${old_dir_or_file}" ]; do
-           i=$[$i+1]
-           old_indx=$( printf "%03d" "$i" )
-           old_dir_or_file="${dir_or_file}/old${old_indx}"
-         done
+      if [[ "${dir_or_file}" == "${EXPTDIR}" ]]; then
+        local i=1
+        local old_indx=$( printf "%03d" "$i" )
+        local old_dir_or_file="${dir_or_file}_old${old_indx}"
+        while [ -d "${old_dir_or_file}" ]; do
+          i=$[$i+1]
+          old_indx=$( printf "%03d" "$i" )
+          old_dir_or_file="${dir_or_file}_old${old_indx}"
+        done
 
-         print_info_msg "$VERBOSE" "
-   Specified directory or file (dir_or_file) already exists:
-     dir_or_file = \"${dir_or_file}\"
-   Moving (renaming) preexisting directory or file to:
-     old_dir_or_file = \"${old_dir_or_file}\""
+        print_info_msg "$VERBOSE" "
+  Specified directory or file (dir_or_file) already exists:
+    dir_or_file = \"${dir_or_file}\"
+  Moving (renaming) preexisting directory or file to:
+    old_dir_or_file = \"${old_dir_or_file}\""
 
-        rsync_vrfy -a --exclude "old*" "${dir_or_file}/" "${old_dir_or_file}"
-       fi
-       ;;
+        rsync_vrfy -a "${dir_or_file}/" "${old_dir_or_file}"
+      fi
+      ;;
 #
 #-----------------------------------------------------------------------
 #
