@@ -25,11 +25,13 @@ FIX_CRTM=/home/rtrr/FIX_EXEC_MODULE/crtm/CRTM_v2.3.0
 VERBOSE="TRUE"
 
 RUN_ENVIR="nco"
-PREEXISTING_DIR_METHOD="rename"
+PREEXISTING_DIR_METHOD="upgrade"
 
 PREDEF_GRID_NAME=RRFS_NA_3km
 
 DO_DACYCLE="FALSE"
+#DO_RETRO="true"
+#LBCS_ICS_ONLY="true"
 
 QUILTING="TRUE"
 CCPP_PHYS_SUITE="FV3_HRRR"
@@ -41,17 +43,37 @@ LBC_SPEC_INTVL_HRS="3"
 EXTRN_MDL_LBCS_OFFSET_HRS="6"
 EXTRN_MDL_LBCS_SEARCH_OFFSET_HRS="0"
 
-#CYCLEDAY="1-4"
+DATE_FIRST_CYCL="20210430"
+DATE_LAST_CYCL="20210430"
+CYCL_HRS=( "00" )
 #CYCLEMONTH="5-7"
-INITIAL_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
-BOUNDARY_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
-PREP_COLDSTART_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
-#PREP_WARMSTART_CYCLEDEF="00 00-02,04-14,16-23 ${CYCLEDAY} ${CYCLEMONTH} 2021 *" <!-- placeholder; future capability -->
-#ANALYSIS_CYCLEDEF="00 00-23/01 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"                <!-- placeholder; future capability -->
-FORECAST_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
-POSTPROC_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
-#POSTPROC_LONG_CYCLEDEF="00 03,09,15,21 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"        <!-- placeholder; future capability -->
-ARCHIVE_CYCLEDEF="00 07 * * 2021 *"
+#CYCLEDAY="1-4"
+#
+if [[ $DO_RETRO == "true" ]] ; then
+  if [[ $LBCS_ICS_ONLY == "true" ]]; then
+    PREEXISTING_DIR_METHOD="rename"
+    INITIAL_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+    BOUNDARY_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  else
+    PREEXISTING_DIR_METHOD="upgrade"
+    PREP_COLDSTART_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+    #PREP_WARMSTART_CYCLEDEF="00 00-02,04-14,16-23 ${CYCLEDAY} ${CYCLEMONTH} 2021 *" <!-- placeholder; future capability -->
+    #ANALYSIS_CYCLEDEF="00 00-23/01 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"                <!-- placeholder; future capability -->
+    FORECAST_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+    POSTPROC_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+    #POSTPROC_LONG_CYCLEDEF="00 03,09,15,21 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"        <!-- placeholder; future capability -->
+  fi
+else
+  INITIAL_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  BOUNDARY_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  PREP_COLDSTART_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  #PREP_WARMSTART_CYCLEDEF="00 00-02,04-14,16-23 ${CYCLEDAY} ${CYCLEMONTH} 2021 *" <!-- placeholder; future capability -->
+  #ANALYSIS_CYCLEDEF="00 00-23/01 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"                <!-- placeholder; future capability -->
+  FORECAST_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  POSTPROC_CYCLEDEF="00 00,12 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"
+  #POSTPROC_LONG_CYCLEDEF="00 03,09,15,21 ${CYCLEDAY} ${CYCLEMONTH} 2021 *"        <!-- placeholder; future capability -->
+  ARCHIVE_CYCLEDEF="00 07 * * 2021 *"
+fi
 
 FCST_LEN_HRS="30"
 POSTPROC_LEN_HRS="30"
@@ -74,10 +96,7 @@ WTIME_MAKE_LBCS="01:00:00"
 WTIME_RUN_FCST="08:00:00"
 
 NNODES_RUN_POST="6"
-
-DATE_FIRST_CYCL="20210430"
-DATE_LAST_CYCL="20210430"
-CYCL_HRS=( "00" )
+WTIME_RUN_POST="00:25:00"
 
 EXTRN_MDL_NAME_ICS="FV3GFS"
 EXTRN_MDL_NAME_LBCS="FV3GFS"
@@ -100,6 +119,9 @@ NCL_REGION="conus"
 MODEL="RRFS_NA_3km"
 ADDNL_OUTPUT_GRIDS=( "hrrr" "rrfsak" )
 
+TILE_LABELS="NA"
+TILE_SETS="full"
+
 #
 # In NCO mode, the following don't need to be explicitly set to "FALSE" 
 # in this configuration file because the experiment generation script
@@ -114,6 +136,17 @@ COMINgfs=""
 
 STMP="/lfs4/BMC/nrtrr/NCO_dirs/stmp"  # Path to directory STMP that mostly contains input files.
 PTMP="/lfs4/BMC/nrtrr/NCO_dirs/ptmp"  # Path to directory STMP that mostly contains input files.
+
+if [[ $DO_RETRO == "true" ]] ; then
+  CLEAN_OLDPROD_HRS="240"
+  CLEAN_OLDLOG_HRS="240"
+  CLEAN_OLDRUN_HRS="6"
+  CLEAN_OLDFCST_HRS="6"
+  if [[ $LBCS_ICS_ONLY == "true" ]]; then
+    CLEAN_OLDRUN_HRS="7777"
+    CLEAN_OLDFCST_HRS="7777"
+  fi
+fi
 
 #
 # In NCO mode, the user must manually (e.g. after doing the build step)

@@ -220,6 +220,7 @@ settings="\
   'nnodes_run_ref2tten': ${NNODES_RUN_REF2TTEN}
   'nnodes_run_nonvarcldanl': ${NNODES_RUN_NONVARCLDANL}
   'nnodes_run_bufrsounding': ${NNODES_RUN_BUFRSOUNDING}
+  'nnodes_run_graphics': ${NNODES_RUN_GRAPHICS}
 #
 # Number of cores used for a task
 #
@@ -248,6 +249,7 @@ settings="\
   'ppn_run_ref2tten': ${PPN_RUN_REF2TTEN}
   'ppn_run_nonvarcldanl': ${PPN_RUN_NONVARCLDANL}
   'ppn_run_bufrsounding': ${PPN_RUN_BUFRSOUNDING}
+  'ppn_run_graphics': ${PPN_RUN_GRAPHICS}
 #
 # Maximum wallclock time for each task.
 #
@@ -371,6 +373,11 @@ settings="\
   'da_cycle_interval_hrs': ${DA_CYCLE_INTERV}
   'do_nonvar_cldanal': ${DO_NONVAR_CLDANAL}
   'do_refl2tten': ${DO_REFL2TTEN}
+#
+# graphics related parameters
+#
+  'tilelabels': ${TILE_LABELS}
+  'tilesets': ${TILE_SETS}
 #
 #  retrospective experiments
 #
@@ -849,7 +856,10 @@ if [ "${DO_DACYCLE}" = "true" ]; then
      'nggps_ic'   : false,
      'mountain'  : true,
      'warm_start' : true,
-   }"
+   }
+ 'gfs_physics_nml': {
+    'fh_dfi_radar': [${FH_DFI_RADAR[@]}],
+  }"
  
  $USHDIR/set_namelist.py -q \
                          -n ${FV3_NML_FP} \
