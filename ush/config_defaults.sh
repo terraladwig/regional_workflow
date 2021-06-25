@@ -245,6 +245,7 @@ EXPT_SUBDIR=""
 #    OBSPATH_NSSLMOSIAC: location of NSSL radar reflectivity 
 #    LIGHTNING_ROOT: location of lightning observations
 #    ENKF_FCSTL: location of global ensemble forecast
+#    FFG_DIR: location of flash flood guidance for QPF comparison
 #-----------------------------------------------------------------------
 #
 COMINgfs="/base/path/of/directory/containing/gfs/input/files"
@@ -266,6 +267,7 @@ OBSPATH="/public/data/grids/rap/obs"
 OBSPATH_NSSLMOSIAC="/public/data/radar/mrms"
 LIGHTNING_ROOT="/public/data/lightning"
 ENKF_FCST="/lfs4/BMC/public/data/grids/enkf/atm"
+FFG_DIR="/public/data/grids/ncep/ffg/grib2"
 
 #
 #-----------------------------------------------------------------------
@@ -1577,10 +1579,20 @@ ADDNL_OUTPUT_GRIDS=( )
 # used for post-processing. This is only used if CUSTOM_POST_CONFIG_FILE
 # is set to "TRUE".
 #
+# CUSTOM_POST_PARAMS_FP:
+# The full path to the custom post params file, including filename, to be 
+# used for post-processing. This is only used if CUSTOM_POST_CONFIG_FILE
+# is set to "TRUE".
+#
+# POST_FULL_MODEL_NAME
+# The full module name required by UPP and set in the itag file
+#
 #-----------------------------------------------------------------------
 #
 USE_CUSTOM_POST_CONFIG_FILE="FALSE"
 CUSTOM_POST_CONFIG_FP=""
+CUSTOM_POST_PARAMS_FP=""
+POST_FULL_MODEL_NAME="FV3R"
 #
 #-----------------------------------------------------------------------
 #
